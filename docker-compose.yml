@@ -7,6 +7,8 @@
 # Trước khi chạy, tạo file .env cạnh file này với 2 dòng:
 #   DOMAIN=hocguitar.tenmien.com
 #   AUTH_SECRET=<chuỗi ngẫu nhiên dài, sinh bằng: openssl rand -base64 48>
+#   ADMIN_EMAIL=admin@tenmien.com
+#   ADMIN_PASSWORD=<mật khẩu quản trị bạn tự đặt>
 
 services:
   app:
@@ -14,6 +16,10 @@ services:
     restart: unless-stopped
     environment:
       AUTH_SECRET: ${AUTH_SECRET:?can dat AUTH_SECRET trong file .env}
+      # Mat khau cho tai khoan quan tri tao lan dau. De trong thi he thong tu
+      # sinh mot chuoi ngau nhien va in ra log (docker compose logs app).
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@guitarcafe.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       # Caddy đã lo HTTPS nên cookie phiên đăng nhập bật secure được.
       COOKIE_SECURE: "true"
       DATA_DIR: /data

@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { DAY_ORDER, TIME_SLOTS } from "./types";
 import { addMinutesToTime } from "./format";
@@ -353,14 +354,30 @@ function seedInner() {
   const userCount = db.prepare("SELECT COUNT(*) as c FROM users").get() as { c: number };
   if (userCount.c > 0) return;
 
+  // Mã nguồn để công khai nên không đặt sẵn mật khẩu trong code: đặt
+  // ADMIN_PASSWORD lúc chạy. Không đặt thì sinh ngẫu nhiên và in ra log một
+  // lần — thà bắt đi đọc log còn hơn để mật khẩu ai cũng đoán được.
+  const email = process.env.ADMIN_EMAIL || "admin@musicnote.local";
+  const password = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString("base64url");
+
   db.prepare(
     `INSERT INTO users (name, email, password_hash, role, active)
      VALUES (@name, @email, @password_hash, 'admin', 1)`
   ).run({
     name: "Quản trị viên",
-    email: "admin@musicnote.local",
-    password_hash: bcrypt.hashSync("admin123", 10),
+    email,
+    password_hash: bcrypt.hashSync(password, 10),
   });
+
+  if (!process.env.ADMIN_PASSWORD) {
+    console.log(
+      "\n=== TAI KHOAN QUAN TRI VUA TAO ===\n" +
+        `  Email    : ${email}\n` +
+        `  Mat khau : ${password}\n` +
+        "  Doi mat khau ngay sau khi dang nhap lan dau.\n" +
+        "==================================\n"
+    );
+  }
 }
 
 function seed() {
