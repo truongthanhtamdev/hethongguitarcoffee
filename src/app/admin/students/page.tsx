@@ -1,5 +1,7 @@
 import { requireRole } from "@/lib/guard";
 import { listStudents } from "@/lib/queries";
+import { countDoneLessonsByUser } from "@/lib/learning";
+import { TOTAL_LESSONS } from "@/lib/curriculum";
 import { IconUser } from "@/components/icons";
 import {
   Avatar,
@@ -17,12 +19,13 @@ import ToggleStudentActiveButton from "./toggle-active-button";
 export default async function StudentsPage() {
   await requireRole(["admin"]);
   const students = listStudents();
+  const selfStudy = countDoneLessonsByUser(students.map((s) => s.id));
 
   return (
     <div className="space-y-5">
       <PageHeader
         title="Tài khoản học viên"
-        subtitle="Tạo tài khoản để học viên tự đăng nhập xem lịch học, tiến độ gói và nội dung bài học. Sau khi tạo, vào trang chi tiết lớp để gắn lớp với tài khoản."
+        subtitle="Học viên có thể tự đăng ký tại /register, hoặc tạo sẵn tài khoản ở đây. Sau khi có tài khoản, vào trang chi tiết lớp để gắn lớp với tài khoản đó."
       />
 
       <Card padded={false}>
@@ -39,6 +42,7 @@ export default async function StudentsPage() {
                 <Th>Học viên</Th>
                 <Th>Email / SĐT đăng nhập</Th>
                 <Th>SĐT liên hệ</Th>
+                <Th>Tự học</Th>
                 <Th>Trạng thái</Th>
                 <Th />
               </tr>
@@ -54,6 +58,9 @@ export default async function StudentsPage() {
                   </td>
                   <td className="px-4 py-3 text-ink-600">{s.email}</td>
                   <td className="px-4 py-3 text-ink-600 tabular">{s.phone || "–"}</td>
+                  <td className="px-4 py-3 text-ink-600 tabular whitespace-nowrap">
+                    {selfStudy.get(s.id) ?? 0} / {TOTAL_LESSONS} buổi
+                  </td>
                   <td className="px-4 py-3">
                     <StatusChip tone={s.active ? "mint" : "neutral"}>
                       {s.active ? "Đang hoạt động" : "Ngừng"}

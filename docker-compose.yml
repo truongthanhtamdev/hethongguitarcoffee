@@ -1,0 +1,44 @@
+# Chạy toàn bộ hệ thống trên một VPS: Caddy đứng trước lo HTTPS (tự xin và tự
+# gia hạn chứng chỉ Let's Encrypt), Next.js chạy phía sau.
+#
+# Cần HTTPS thật vì phần lên dây đàn dùng micro — trình duyệt chỉ cho phép
+# truy cập micro trên https hoặc localhost.
+#
+# Trước khi chạy, tạo file .env cạnh file này với 2 dòng:
+#   DOMAIN=hocguitar.tenmien.com
+#   AUTH_SECRET=<chuỗi ngẫu nhiên dài, sinh bằng: openssl rand -base64 48>
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET:?can dat AUTH_SECRET trong file .env}
+      # Caddy đã lo HTTPS nên cookie phiên đăng nhập bật secure được.
+      COOKIE_SECURE: "true"
+      DATA_DIR: /data
+    volumes:
+      # Toàn bộ dữ liệu thật nằm trong volume này — sao lưu nghĩa là sao lưu nó.
+      - musicnote-data:/data
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      DOMAIN: ${DOMAIN:?can dat DOMAIN trong file .env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  musicnote-data:
+  caddy-data:
+  caddy-config:

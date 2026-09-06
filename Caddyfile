@@ -1,0 +1,12 @@
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+
+	# Micro chỉ dùng cho phần lên dây đàn, và chỉ trên chính trang này.
+	header {
+		Permissions-Policy "microphone=(self), camera=(), geolocation=()"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}

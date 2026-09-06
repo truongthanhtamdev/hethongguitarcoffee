@@ -154,6 +154,31 @@ function migrate() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    -- Tiến độ tự học của học viên trong phần "Học guitar" (36 buổi).
+    -- Tách khỏi attendance: attendance là buổi đã dạy có giáo viên điểm danh,
+    -- còn đây là bài học viên tự đánh dấu đã làm xong ở nhà.
+    CREATE TABLE IF NOT EXISTS learning_progress (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      lesson_no INTEGER NOT NULL,
+      completed_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, lesson_no)
+    );
+
+    CREATE TABLE IF NOT EXISTS learned_chords (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      chord TEXT NOT NULL,
+      learned_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, chord)
+    );
+
+    -- Mỗi ngày một dòng, cộng dồn số phút luyện tập để tính chuỗi ngày liên tiếp.
+    CREATE TABLE IF NOT EXISTS practice_log (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      practice_date TEXT NOT NULL,
+      minutes INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, practice_date)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
     CREATE INDEX IF NOT EXISTS idx_classes_student_user ON classes(student_user_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read_at);

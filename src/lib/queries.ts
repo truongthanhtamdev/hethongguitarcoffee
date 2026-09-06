@@ -131,6 +131,24 @@ export function listClassesForStudent(studentUserId: number): ClassWithTeacher[]
     .all(studentUserId) as ClassWithTeacher[];
 }
 
+/**
+ * Một lớp cụ thể của học viên đang đăng nhập. Lọc luôn theo `student_user_id`
+ * ngay trong câu truy vấn thay vì lấy lớp rồi mới kiểm tra: học viên gõ tay
+ * một id lớp của người khác sẽ không lấy được gì.
+ */
+export function getClassForStudent(
+  classId: number,
+  studentUserId: number
+): ClassWithTeacher | undefined {
+  return db
+    .prepare(
+      `SELECT c.*, u.name as teacher_name
+       FROM classes c LEFT JOIN users u ON u.id = c.teacher_id
+       WHERE c.id = ? AND c.student_user_id = ?`
+    )
+    .get(classId, studentUserId) as ClassWithTeacher | undefined;
+}
+
 export interface PackageProgress {
   packageId: number;
   total: number;

@@ -1,13 +1,18 @@
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
-import { listClassesForStudent, getPackageProgress, listAttendance } from "@/lib/queries";
+import { listClassesForStudent, getPackageProgressForClasses } from "@/lib/queries";
 import { toISODate, nextOccurrence } from "@/lib/format";
-import { ATTENDANCE_STATUS_LABELS, formatClassSchedule } from "@/lib/types";
-import { IconMusic, SubjectIcon } from "@/components/icons";
+import { formatClassSchedule } from "@/lib/types";
+import { IconChevronRight, IconGuitar, IconMusic, SubjectIcon } from "@/components/icons";
+import { getLearningState } from "@/lib/learning";
+import { TOTAL_LESSONS } from "@/lib/curriculum";
 import { Card, EmptyState, ProgressBar, StatusChip, packageTone } from "@/components/ui";
 
 export default async function StudentHomePage() {
   const session = await getSession();
   const classes = listClassesForStudent(session!.userId);
+  const learning = getLearningState(session!.userId);
+  const progressByClass = getPackageProgressForClasses(classes);
 
   return (
     <div className="space-y-5">
@@ -18,26 +23,55 @@ export default async function StudentHomePage() {
         </p>
       </section>
 
+      <Link
+        href={`/student/learn/${learning.next.n}`}
+        className="block rounded-2xl border border-navy-100 bg-white p-5 hover:shadow-sm transition"
+      >
+        <div className="flex items-center gap-4">
+          <span className="shrink-0 rounded-xl bg-wood-50 text-wood-600 p-3">
+            <IconGuitar className="w-6 h-6" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-ink-900">
+              {learning.completedCount > 0
+                ? `Học tiếp buổi ${String(learning.next.n).padStart(2, "0")} — ${learning.next.title}`
+                : "Bắt đầu lộ trình 36 buổi"}
+            </p>
+            <p className="text-sm text-ink-500 mt-0.5 truncate">{learning.next.desc}</p>
+            <div className="mt-2">
+              <ProgressBar value={learning.completedCount} max={TOTAL_LESSONS} showPercent />
+            </div>
+          </div>
+          <IconChevronRight className="w-5 h-5 text-ink-400 shrink-0" />
+        </div>
+      </Link>
+
       {classes.length === 0 ? (
         <Card padded={false}>
           <EmptyState
             icon={<IconMusic className="w-7 h-7" />}
             title="Chưa có lớp học nào gắn với tài khoản của bạn"
-            description="Liên hệ trung tâm để được hỗ trợ kết nối lớp học vào tài khoản này."
+            description="Bạn vẫn tự học được toàn bộ lộ trình ở trên. Muốn xem lịch học tại trung tâm, báo email đã đăng ký cho trung tâm để được gắn vào lớp."
           />
         </Card>
       ) : (
         <div className="space-y-4">
+          <h2 className="font-bold text-ink-900">Lớp học tại trung tâm</h2>
+
           {classes.map((c) => {
-            const progress = getPackageProgress(c);
-            const history = listAttendance({ classId: c.id })
-              .filter((a) => a.lesson_content)
-              .slice(0, 8);
+            const progress = c.package_id ? progressByClass.get(c.package_id) : undefined;
             const nextDate =
-              c.schedule_type === "fixed" ? toISODate(nextOccurrence(c.day_of_week)) : null;
+              c.status === "active" && c.schedule_type === "fixed"
+                ? toISODate(nextOccurrence(c.day_of_week))
+                : null;
+
             return (
-              <Card key={c.id} padded={false}>
-                <div className="p-5 flex flex-wrap items-start justify-between gap-3 border-b border-navy-100">
+              <Link
+                key={c.id}
+                href={`/student/classes/${c.id}`}
+                className="block rounded-2xl border border-navy-100 bg-white p-5 hover:shadow-sm transition"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-ink-900 flex items-center gap-2">
                       <SubjectIcon subject={c.subject} className="w-5 h-5 text-wood-500" />
@@ -48,17 +82,23 @@ export default async function StudentHomePage() {
                       {formatClassSchedule(c)} · Giáo viên: {c.teacher_name || "Chưa xếp"}
                     </p>
                   </div>
-                  {nextDate ? (
-                    <StatusChip tone="navy">Buổi tới: {nextDate}</StatusChip>
-                  ) : (
-                    <StatusChip tone="neutral">Lịch linh động</StatusChip>
-                  )}
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {nextDate ? (
+                      <StatusChip tone="navy">Buổi tới: {nextDate}</StatusChip>
+                    ) : (
+                      <StatusChip tone="neutral">
+                        {c.status === "active" ? "Lịch linh động" : "Đã kết thúc"}
+                      </StatusChip>
+                    )}
+                    <IconChevronRight className="w-5 h-5 text-ink-400" />
+                  </div>
                 </div>
 
                 {progress && (
-                  <div className="px-5 py-4 border-b border-navy-100">
+                  <div className="mt-4">
                     <div className="flex items-baseline justify-between mb-1.5">
-                      <span className="text-sm text-ink-600 tabular">
+                      <span className="text-sm text-ink-500 tabular">
                         Đã học <span className="font-semibold text-ink-900">{progress.used}</span> /{" "}
                         {progress.total} tiết
                       </span>
@@ -79,34 +119,9 @@ export default async function StudentHomePage() {
                       max={progress.total}
                       tone={packageTone(progress.remaining)}
                     />
-                    {progress.remaining <= 3 && (
-                      <p className="text-xs text-coral-600 mt-2">
-                        Gói học sắp hết — liên hệ trung tâm để gia hạn.
-                      </p>
-                    )}
                   </div>
                 )}
-
-                <div className="p-5">
-                  <h3 className="text-sm font-semibold text-ink-700 mb-3">
-                    Nội dung các buổi học gần đây
-                  </h3>
-                  {history.length === 0 ? (
-                    <p className="text-sm text-ink-400">Chưa có nội dung nào được ghi lại.</p>
-                  ) : (
-                    <ul className="space-y-3">
-                      {history.map((a) => (
-                        <li key={a.id} className="text-sm border-l-2 border-wood-200 pl-3.5">
-                          <p className="text-ink-400 text-xs tabular">
-                            {a.session_date} · {ATTENDANCE_STATUS_LABELS[a.status]}
-                          </p>
-                          <p className="text-ink-700 mt-0.5">{a.lesson_content}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </Card>
+              </Link>
             );
           })}
         </div>

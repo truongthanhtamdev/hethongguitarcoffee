@@ -57,4 +57,27 @@ export function getUserByEmail(email: string): UserRow | undefined {
     .get(email) as UserRow | undefined;
 }
 
+/**
+ * Tra tài khoản theo email hoặc số điện thoại — form đăng nhập nhận cả hai.
+ * Số điện thoại được so sánh sau khi bỏ khoảng trắng, dấu chấm và gạch ngang,
+ * vì người dùng gõ "0912 345 678" còn trung tâm nhập "0912345678".
+ */
+export function getUserByEmailOrPhone(input: string): UserRow | undefined {
+  const byEmail = getUserByEmail(input);
+  if (byEmail) return byEmail;
+
+  const digits = input.replace(/[^0-9]/g, "");
+  if (digits.length < 8) return undefined;
+
+  return db
+    .prepare(
+      `SELECT * FROM users
+       WHERE phone IS NOT NULL
+         AND REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '.', ''), '+', '') = ?
+       ORDER BY active DESC, id
+       LIMIT 1`
+    )
+    .get(digits) as UserRow | undefined;
+}
+
 export const COOKIE = COOKIE_NAME;

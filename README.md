@@ -12,7 +12,7 @@ một VPS nhỏ, không cần dịch vụ ngoài.
 | **Admin** | Toàn quyền: tạo tài khoản cho Giáo vụ/Giáo viên/Học viên, quản lý giáo viên & lương/buổi, quản lý lớp, giao lớp, sửa điểm danh, xem/xuất báo cáo lương, quản lý doanh thu & lợi nhuận. |
 | **Giáo vụ** (coordinator) | Tạo/sửa lớp học, giao lớp cho giáo viên, xem & sửa nhật ký điểm danh. Không xem/sửa được lương hay tài khoản. |
 | **Giáo viên** | Xem lớp được giao, **tự thêm lớp mới của mình** (học sinh + thứ/giờ học) và sửa lịch lớp mình đang dạy, điểm danh buổi học hôm nay (kèm nội dung bài học + tick "đã điểm danh trên Facebook"), đánh dấu khung giờ bận trong tuần, xem lịch dạy & thu nhập của mình. |
-| **Học viên** | Đăng nhập xem lớp học của mình: tiến độ gói học (đã học/còn lại bao nhiêu tiết) và nội dung các buổi học gần đây. Chỉ xem, không sửa được gì. |
+| **Học viên** | Đăng nhập xem lớp học của mình: tiến độ gói học (đã học/còn lại bao nhiêu tiết) và nội dung các buổi học gần đây — phần này chỉ xem, không sửa. Ngoài ra có khu **tự học guitar**: lộ trình 36 buổi tự đánh dấu hoàn thành, thư viện hợp âm, metronome, lên dây đàn bằng mic và máy đệm hát. |
 
 Lưu ý: hệ thống **không thay thế** việc điểm danh trên nhóm Facebook — giáo
 viên vẫn cần điểm danh song song ở cả hai nơi như quy định hiện tại của
@@ -32,6 +32,13 @@ toàn bộ tài khoản còn lại (Giáo vụ ở trang **Nhân sự quản lý
 trang **Giáo viên**, Học viên ở trang **Học viên**) và nhập lớp học (thủ công
 hoặc import CSV hàng loạt).
 
+Riêng **học viên còn có thể tự đăng ký** ở trang `/register` — tài khoản tạo
+theo đường này luôn là vai trò Học viên, dùng ngay được khu tự học nhưng chưa
+gắn với lớp nào. Muốn học viên đó xem được lịch học, admin vào **chi tiết
+lớp → gắn tài khoản học viên** bằng email họ đã đăng ký.
+
+Đăng nhập nhận **email hoặc số điện thoại** đã lưu trong hồ sơ.
+
 ## Chạy thử (development)
 
 ```bash
@@ -45,31 +52,85 @@ Mở http://localhost:3000 — lần chạy đầu tiên hệ thống tự tạo
 
 ## Triển khai (production)
 
-Ứng dụng dùng SQLite lưu trên đĩa cục bộ (`data/musicnote.db`), nên cần một
-máy chủ Node.js **có ổ đĩa lưu trữ lâu dài** (VPS, Docker container có
-volume...). Không dùng được trên nền tảng serverless không lưu trạng thái
-(Vercel mặc định, v.v.) vì mỗi lần gọi hàm dữ liệu sẽ mất.
+Ứng dụng dùng SQLite lưu trên đĩa cục bộ, nên cần máy chủ Node.js **có ổ đĩa
+lưu trữ lâu dài** (VPS, Docker container có volume...). Không chạy được trên
+nền tảng serverless không lưu trạng thái (Vercel mặc định, v.v.) vì mỗi lần
+gọi hàm dữ liệu sẽ mất.
+
+**Bắt buộc có HTTPS**: phần lên dây đàn dùng micro, mà trình duyệt chỉ cho
+phép truy cập micro trên `https` hoặc `localhost`. Chạy tạm qua
+`http://<ip>:<port>` thì mọi thứ khác vẫn dùng được, riêng tuner sẽ báo không
+truy cập được micro.
+
+### Cách 1 — Docker Compose (khuyến nghị)
+
+Kèm sẵn `Dockerfile`, `docker-compose.yml` và `Caddyfile`. Caddy đứng trước lo
+HTTPS: tự xin chứng chỉ Let's Encrypt và tự gia hạn, không phải cấu hình gì
+thêm.
+
+Chuẩn bị: một VPS đã cài Docker, và tên miền đã trỏ bản ghi A về IP của VPS.
 
 ```bash
-npm install
-npm run build
-AUTH_SECRET="chuoi-bi-mat-rat-dai-va-ngau-nhien" \
-DATA_DIR="/var/lib/musicnote/data" \
-npm run start -- -p 3000
+git clone <repo> && cd musicnote/app
+
+cat > .env <<EOF
+DOMAIN=hocguitar.tenmien.com
+AUTH_SECRET=$(openssl rand -base64 48)
+EOF
+
+docker compose up -d --build
 ```
 
-Gợi ý:
-- Chạy phía sau Nginx/Caddy với HTTPS, và dùng `pm2` hoặc systemd để tự khởi
-  động lại khi máy chủ reboot. Khi đã có HTTPS thật, đặt thêm biến môi trường
-  `COOKIE_SECURE=true` để cookie đăng nhập chỉ gửi qua kết nối mã hoá. **Nếu
-  chưa có HTTPS (chạy tạm qua `http://ip:port`), để trống biến này** — đặt
-  `true` khi chưa có HTTPS sẽ khiến trình duyệt từ chối lưu cookie và liên
-  tục bị đá về trang đăng nhập.
-- Sao lưu định kỳ thư mục `DATA_DIR` (chính là toàn bộ dữ liệu: giáo viên,
-  lớp học, điểm danh, lịch rảnh).
-- Đặt `AUTH_SECRET` là một chuỗi ngẫu nhiên dài, giữ bí mật và **không đổi**
-  sau khi đã có người đăng nhập (đổi sẽ làm mất hiệu lực mọi phiên đăng
-  nhập hiện tại).
+Mở `https://hocguitar.tenmien.com` và đăng nhập bằng tài khoản admin mặc
+định — **đổi mật khẩu ngay**.
+
+Dữ liệu nằm trong volume `musicnote-data`. Sao lưu:
+
+```bash
+docker compose exec -T app sh -c 'cat /data/musicnote.db' > backup-$(date +%F).db
+```
+
+Cập nhật phiên bản mới:
+
+```bash
+git pull && docker compose up -d --build
+```
+
+### Cách 2 — Chạy trực tiếp bằng Node
+
+```bash
+npm ci
+npm run build
+AUTH_SECRET="chuoi-bi-mat-rat-dai-va-ngau-nhien" DATA_DIR="/var/lib/musicnote/data" COOKIE_SECURE=true npm run start -- -p 3000
+```
+
+Rồi đặt Nginx/Caddy phía trước để có HTTPS, và dùng `pm2` hoặc systemd để tự
+khởi động lại khi VPS reboot.
+
+### Lưu ý chung
+
+- `COOKIE_SECURE=true` chỉ đặt **khi đã có HTTPS thật**. Đặt `true` lúc còn
+  chạy `http://` sẽ khiến trình duyệt từ chối lưu cookie và người dùng bị đá
+  về trang đăng nhập liên tục.
+- `AUTH_SECRET` là chuỗi ngẫu nhiên dài, giữ bí mật và **không đổi** sau khi
+  đã có người đăng nhập (đổi sẽ làm mất hiệu lực mọi phiên hiện tại).
+- Sao lưu định kỳ `DATA_DIR` — đó là toàn bộ dữ liệu: giáo viên, lớp học,
+  điểm danh, học phí, tiến độ tự học.
+- **Không đưa database lúc dev lên máy chủ.** `next build` có kéo `data/` vào
+  `.next/standalone/`; `.dockerignore` đã loại thư mục này nên bản Docker
+  luôn khởi tạo database mới, nhưng nếu copy tay `.next/standalone` lên server
+  thì nhớ xoá `data/` trước.
+
+### Cài như một app trên điện thoại (PWA)
+
+Không cần lên App Store / CH Play. Sau khi có HTTPS, mở trang bằng trình duyệt
+trên điện thoại rồi:
+
+- **Android (Chrome)**: menu ⋮ → *Cài đặt ứng dụng* / *Thêm vào màn hình chính*
+- **iPhone (Safari)**: nút Chia sẻ → *Thêm vào MH chính*
+
+App sẽ có icon riêng, mở toàn màn hình không còn thanh địa chỉ, và vào thẳng
+màn hình lộ trình 36 buổi. Cấu hình nằm ở `src/app/manifest.ts`.
 
 ## Các luồng chính
 
@@ -178,6 +239,19 @@ Gợi ý:
   tại) để xem
   **Doanh thu, Lương giáo viên, Chi phí khác, Lợi nhuận** (= doanh thu − lương
   − chi phí), xuất file CSV hàng tháng để gửi báo cáo.
+
+- **Học viên → Học guitar**: lộ trình 36 buổi chia 6 chặng (làm quen đàn →
+  14 hợp âm → Slow Rock → Ballad → quạt chả → bài tốt nghiệp). Đánh dấu xong
+  một buổi thì các hợp âm mới của buổi đó tự vào danh sách "đã thuộc" và cộng
+  30 phút luyện tập. Tiến độ tự học lưu riêng với điểm danh: điểm danh là buổi
+  giáo viên dạy thật, còn đây là bài học viên tự làm ở nhà — màn hình lộ trình
+  hiện cả hai để đối chiếu, và admin thấy cột **Tự học** ở trang Học viên.
+- **Học viên → Hợp âm / Luyện tập**: 20 hợp âm vẽ sơ đồ thế bấm, chạm để nghe
+  tiếng đàn mẫu; metronome (2/4, 3/4, 4/4, 6/8, tap tempo), lên dây đàn bằng
+  micro (hiện sai số theo cent) và máy đệm hát 5 kiểu điệu × 8 vòng hợp âm.
+  Tiếng đàn được tổng hợp trực tiếp trong trình duyệt (Karplus-Strong) nên
+  không cần file âm thanh nào. **Lưu ý:** phần lên dây cần micro nên trang
+  phải chạy trên `https` hoặc `localhost` thì trình duyệt mới cho phép.
 
 ## Ngăn xếp công nghệ
 
