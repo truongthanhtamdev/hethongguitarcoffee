@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/guard";
 import { listDoneLessons } from "@/lib/learning";
 import {
   CHORD_BY_NAME,
+  videoKind,
   LESSONS,
   STRUM_STYLES,
   TOTAL_LESSONS,
@@ -14,14 +15,6 @@ import { Card } from "@/components/ui";
 import { IconChevronLeft, IconChevronRight, IconCheckCircle } from "@/components/icons";
 import LessonChords from "./lesson-chords";
 import MarkDoneButton from "./mark-done-button";
-
-/** Kiểu đệm gắn với từng chặng, để nút "mở máy đệm" vào thẳng điệu đang học. */
-const STAGE_STRUM: Record<number, string> = {
-  1: "downs",
-  3: "slowrock",
-  4: "ballad",
-  5: "quatcha",
-};
 
 export function generateStaticParams() {
   return LESSONS.map((l) => ({ n: String(l.n) }));
@@ -47,8 +40,9 @@ export default async function LessonDetailPage({
   const next = lessonByNo(lesson.n + 1);
 
   const chords = lesson.chords.map((name) => CHORD_BY_NAME[name]).filter(Boolean);
-  const strumId = STAGE_STRUM[stage.id];
-  const strum = strumId ? STRUM_STYLES.find((s) => s.id === strumId) : undefined;
+  const video = videoKind(lesson.video);
+  // Điệu lấy từ chính bài đó, không đoán theo chương nữa.
+  const strum = lesson.strum ? STRUM_STYLES.find((s) => s.id === lesson.strum) : undefined;
 
   return (
     <div className="space-y-5">
@@ -57,26 +51,51 @@ export default async function LessonDetailPage({
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-500 hover:text-ink-900"
       >
         <IconChevronLeft className="w-4 h-4" />
-        Lộ trình 36 buổi
+        Nội dung khoá học
       </Link>
 
       <section className="rounded-2xl bg-navy-950 text-white px-5 py-6 sm:px-7">
         <p className="text-xs uppercase tracking-wider text-navy-300 font-semibold">
-          Buổi {String(lesson.n).padStart(2, "0")} / {TOTAL_LESSONS} · Chặng {stage.id} ·{" "}
-          {stage.tag}
+          Chương {lesson.ch} · Bài {lesson.no} / {TOTAL_LESSONS} · {stage.tag}
         </p>
         <h1 className="text-2xl font-bold tracking-tight mt-1.5">{lesson.title}</h1>
         <p className="text-navy-200 text-sm mt-1">{lesson.desc}</p>
         {isDone && (
           <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-mint-300 mt-3">
             <IconCheckCircle className="w-4 h-4" />
-            Bạn đã hoàn thành buổi này
+            Bạn đã học xong bài này
           </p>
         )}
       </section>
 
+      {video && (
+        <Card>
+          <h2 className="font-bold text-ink-900 mb-3">Video bài giảng</h2>
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black">
+            {video.kind === "youtube" ? (
+              <iframe
+                className="absolute inset-0 w-full h-full"
+                src={`https://www.youtube-nocookie.com/embed/${video.id}?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3`}
+                title={`Video bài giảng: ${lesson.title}`}
+                allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+                loading="lazy"
+              />
+            ) : (
+              <video
+                className="absolute inset-0 w-full h-full"
+                src={lesson.video}
+                controls
+                playsInline
+                preload="metadata"
+              />
+            )}
+          </div>
+        </Card>
+      )}
+
       <Card>
-        <h2 className="font-bold text-ink-900 mb-3">Học xong buổi này bạn sẽ</h2>
+        <h2 className="font-bold text-ink-900 mb-3">Học xong bài này bạn sẽ</h2>
         <p className="text-ink-700">{lesson.result}</p>
       </Card>
 
@@ -104,15 +123,15 @@ export default async function LessonDetailPage({
 
       {chords.length > 0 ? (
         <Card>
-          <h2 className="font-bold text-ink-900 mb-1">Hợp âm trong buổi</h2>
+          <h2 className="font-bold text-ink-900 mb-1">Hợp âm trong bài</h2>
           <p className="text-sm text-ink-500 mb-3">Chạm vào sơ đồ để nghe tiếng đàn mẫu.</p>
           <LessonChords chords={chords} />
         </Card>
       ) : (
         <Card>
-          <h2 className="font-bold text-ink-900 mb-1">Hợp âm trong buổi</h2>
+          <h2 className="font-bold text-ink-900 mb-1">Hợp âm trong bài</h2>
           <p className="text-sm text-ink-500">
-            Buổi này tập trung vào kỹ thuật, chưa thêm hợp âm mới. Tranh thủ ôn lại các hợp âm đã
+            Bài này tập trung vào kỹ thuật, chưa thêm hợp âm mới. Tranh thủ ôn lại các hợp âm đã
             học ở{" "}
             <Link href="/student/chords" className="font-semibold text-wood-600 hover:text-wood-700">
               thư viện hợp âm

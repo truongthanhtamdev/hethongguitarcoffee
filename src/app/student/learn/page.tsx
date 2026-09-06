@@ -27,7 +27,7 @@ export default async function StudentLearnPage() {
           />
         </div>
         <p className="text-xs text-navy-300 mt-2 tabular">
-          {state.completedCount} / {TOTAL_LESSONS} buổi · luyện {state.streak} ngày liên tiếp
+          {state.completedCount} / {TOTAL_LESSONS} bài · luyện {state.streak} ngày liên tiếp
         </p>
 
         <Link
@@ -71,10 +71,10 @@ export default async function StudentLearnPage() {
       )}
 
       <div>
-        <h2 className="font-bold text-ink-900 mb-1">Lộ trình 36 buổi</h2>
+        <h2 className="font-bold text-ink-900 mb-1">Nội dung khoá học</h2>
         <p className="text-sm text-ink-500 mb-3">
-          Hoàn thành đủ 36 buổi để tự đệm hát với 14 hợp âm trưởng/thứ, Slow Rock, Ballad và quạt
-          chả.
+          Học hết {TOTAL_LESSONS} bài là bạn bấm được các hợp âm căn bản 3 ngăn đầu, hiểu 4 loại
+          nhịp 4/4, 2/4, 3/4, 6/8 và đệm hát được với 8 điệu cơ bản.
         </p>
         <LessonList done={state.done} />
       </div>

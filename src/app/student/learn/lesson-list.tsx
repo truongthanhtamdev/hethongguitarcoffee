@@ -182,7 +182,7 @@ function LessonSheet({
         {chords.length > 0 && (
           <div className="mt-4">
             <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold mb-2">
-              Hợp âm trong buổi
+              Hợp âm trong bài
             </p>
             <div className="grid grid-cols-4 gap-2">
               {chords.map((c) => (

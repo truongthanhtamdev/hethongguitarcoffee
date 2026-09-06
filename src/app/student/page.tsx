@@ -34,8 +34,8 @@ export default async function StudentHomePage() {
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-ink-900">
               {learning.completedCount > 0
-                ? `Học tiếp buổi ${String(learning.next.n).padStart(2, "0")} — ${learning.next.title}`
-                : "Bắt đầu lộ trình 36 buổi"}
+                ? `Học tiếp: ${learning.next.title}`
+                : "Bắt đầu khoá đệm hát cơ bản"}
             </p>
             <p className="text-sm text-ink-500 mt-0.5 truncate">{learning.next.desc}</p>
             <div className="mt-2">

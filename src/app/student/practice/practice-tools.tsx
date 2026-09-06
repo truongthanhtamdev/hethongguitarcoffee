@@ -432,9 +432,9 @@ function StrumMachine({
 
     const id = window.setInterval(() => {
       const st = styleRef.current;
-      const beatsPerBar = st.sub === 6 ? 6 : 4;
-      const subPerBeat = st.sub / beatsPerBar;
-      const dt = 60 / bpmRef.current / subPerBeat;
+      // Số phách nhỏ trên một phách chính lấy từ chính điệu đó, vì giáo trình
+      // có cả 2/4, 3/4, 4/4 lẫn 6/8 chứ không chỉ 4/4 và 6/8.
+      const dt = 60 / bpmRef.current / (st.sub / st.beats);
 
       while (nextTime < ctx.currentTime + 0.14) {
         const s = step % st.sub;
