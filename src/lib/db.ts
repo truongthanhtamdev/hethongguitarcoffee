@@ -155,7 +155,7 @@ function migrate() {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- Tiến độ tự học của học viên trong phần "Học guitar" (36 buổi).
+    -- Tiến độ tự học của học viên trong phần "Học guitar" (28 bài).
     -- Tách khỏi attendance: attendance là buổi đã dạy có giáo viên điểm danh,
     -- còn đây là bài học viên tự đánh dấu đã làm xong ở nhà.
     CREATE TABLE IF NOT EXISTS learning_progress (
@@ -213,6 +213,23 @@ function migrate() {
 
     CREATE INDEX IF NOT EXISTS idx_orders_moi ON orders(status, id);
 
+    -- Học viên quên mật khẩu. Hệ thống chưa gửi được email nên không dùng link
+    -- đặt lại tự động: khách bấm "Quên mật khẩu", yêu cầu rơi vào đây, quản trị
+    -- gọi lại xác nhận rồi cấp một mật khẩu tạm đọc qua điện thoại/Zalo.
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      -- Nguyên văn email/SĐT khách gõ, kể cả khi không khớp tài khoản nào:
+      -- gõ nhầm một chữ cũng là lý do hay gặp, giữ lại để còn gọi hỏi.
+      contact TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','done','cancelled')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      handled_at TEXT,
+      handled_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_password_resets_moi ON password_resets(status, id);
+
     CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
     CREATE INDEX IF NOT EXISTS idx_classes_student_user ON classes(student_user_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read_at);
@@ -246,6 +263,11 @@ function migrate() {
   ensureColumn("attendance", "rescheduled_to_time", "TEXT");
   ensureColumn("classes", "trial_pending", "INTEGER NOT NULL DEFAULT 0");
   ensureStudentRoleSupported();
+
+  // Khách tự đăng ký chọn nơi muốn học và khu vực đang ở — để biết nên mở
+  // thêm chi nhánh ở đâu.
+  ensureColumn("users", "branch", "TEXT");
+  ensureColumn("users", "area", "TEXT");
   migratePackagesToTable();
   invertAvailabilityToBusyOnce();
 }

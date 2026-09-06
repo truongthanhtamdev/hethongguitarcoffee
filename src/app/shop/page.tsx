@@ -2,7 +2,7 @@ import Link from "next/link";
 import { GUITARS, SHOP_UPDATED } from "@/lib/shop";
 import { BRAND, PublicFooter, PublicHeader, prettyPhone } from "@/components/brand";
 
-export const metadata = { title: "Mua đàn guitar — Dạy Guitar Tại Quán Cà Phê" };
+export const metadata = { title: "Mua đàn guitar" };
 
 export default function ShopPage() {
   return (

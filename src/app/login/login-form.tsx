@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { loginAction, type LoginState } from "@/actions/auth";
 import { IconAlert } from "@/components/icons";
@@ -23,19 +24,29 @@ export default function LoginForm({ next }: { next: string }) {
           type="text"
           required
           autoFocus
+          autoComplete="username"
           className={field}
-          placeholder="ban@musicnote.local"
+          placeholder="ban@email.com"
         />
       </div>
       <div>
-        <label className={label} htmlFor="login-password">
-          Mật khẩu
-        </label>
+        <div className="flex items-baseline justify-between gap-2">
+          <label className={label} htmlFor="login-password">
+            Mật khẩu
+          </label>
+          <Link
+            href="/quen-mat-khau"
+            className="text-xs font-semibold text-wood-600 hover:text-wood-700 mb-1.5"
+          >
+            Quên mật khẩu?
+          </Link>
+        </div>
         <input
           id="login-password"
           name="password"
           type="password"
           required
+          autoComplete="current-password"
           className={field}
           placeholder="••••••••"
         />

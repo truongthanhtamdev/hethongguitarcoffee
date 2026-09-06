@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/guard";
 import { AppShell, type NavItem } from "@/components/app-shell";
+import { BRAND } from "@/components/brand";
 import {
   IconCalendarCheck,
   IconGuitar,
@@ -24,7 +25,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
 
   return (
     <AppShell
-      brandTitle="Piano Guitar Đệm Hát"
+      brandTitle={BRAND.short}
       userName={session.name}
       roleLabel="Học viên"
       links={links}

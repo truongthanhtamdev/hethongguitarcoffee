@@ -1,7 +1,9 @@
 import { requireRole } from "@/lib/guard";
 import { AppShell, type NavItem } from "@/components/app-shell";
+import { BRAND } from "@/components/brand";
 import { listClassesByDay, listAttendance } from "@/lib/queries";
 import { countUnread } from "@/lib/messages";
+import { db } from "@/lib/db";
 import { todayISO } from "@/lib/format";
 import {
   IconBell,
@@ -9,6 +11,7 @@ import {
   IconChart,
   IconClasses,
   IconHome,
+  IconKey,
   IconPackage,
   IconSettings,
   IconTeacher,
@@ -31,6 +34,14 @@ function overdueTodayCount(): number {
     const [h, m] = c.start_time.split(":").map(Number);
     return nowMinutes > h * 60 + m + c.duration_minutes;
   }).length;
+}
+
+/** Số khách đang chờ được cấp lại mật khẩu — cộng vào chuông cảnh báo. */
+function pendingResetCount(): number {
+  const row = db
+    .prepare("SELECT COUNT(*) AS c FROM password_resets WHERE status = 'new'")
+    .get() as { c: number };
+  return row.c;
 }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -67,6 +78,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       : []),
     { href: "/admin/orders", label: "Đơn đặt đàn", icon: <IconPackage className={ICON} /> },
     { href: "/admin/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
+    { href: "/admin/quen-mat-khau", label: "Quên mật khẩu", icon: <IconKey className={ICON} /> },
     { href: "/admin/import", label: "Nhập dữ liệu", icon: <IconUpload className={ICON} /> },
     ...(session.role === "admin"
       ? [
@@ -86,11 +98,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <AppShell
-      brandTitle="Piano Guitar Đệm Hát"
+      brandTitle={BRAND.short}
       userName={session.name}
       roleLabel={session.role === "admin" ? "Quản trị viên" : "Giáo vụ"}
       links={links}
-      alertCount={overdueTodayCount() + countUnread(session.userId)}
+      alertCount={overdueTodayCount() + countUnread(session.userId) + pendingResetCount()}
     >
       {children}
     </AppShell>

@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { roleHomePath } from "@/lib/types";
+import { KHU_VUC, NOI_HOC } from "@/components/brand";
 
 export interface LoginState {
   error?: string;
@@ -52,6 +53,9 @@ export async function logoutAction() {
 
 export interface RegisterState {
   error?: string;
+  /** React xoá trắng các ô nhập sau mỗi lần chạy form action — trả lại nguyên
+   *  văn những gì khách đã gõ để báo lỗi xong không phải nhập lại từ đầu. */
+  values?: { name: string; email: string; phone: string; branch: string; area: string };
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -70,41 +74,58 @@ export async function registerAction(
   const phone = String(formData.get("phone") || "").trim();
   const password = String(formData.get("password") || "");
   const confirm = String(formData.get("confirm") || "");
+  const branch = String(formData.get("branch") || "").trim();
+  const area = String(formData.get("area") || "").trim();
+
+  const daNhap = { name, email, phone, branch, area };
+  const loi = (m: string): RegisterState => ({ error: m, values: daNhap });
 
   if (!name || !email || !password) {
-    return { error: "Vui lòng nhập họ tên, email và mật khẩu" };
+    return loi("Vui lòng nhập họ tên, email và mật khẩu");
   }
   if (!EMAIL_RE.test(email)) {
-    return { error: "Email chưa đúng định dạng" };
+    return loi("Email chưa đúng định dạng");
+  }
+  if (!phone) {
+    return loi("Bạn để lại số điện thoại để bên mình gọi xếp lịch nhé");
+  }
+  // Chỉ nhận đúng những lựa chọn có trong danh sách, không tin dữ liệu form.
+  if (!NOI_HOC.includes(branch)) {
+    return loi("Bạn chọn giúp nơi muốn học nhé");
+  }
+  if (!KHU_VUC.includes(area)) {
+    return loi("Bạn chọn giúp khu vực đang ở nhé");
   }
   if (password.length < 6) {
-    return { error: "Mật khẩu cần ít nhất 6 ký tự" };
+    return loi("Mật khẩu cần ít nhất 6 ký tự");
   }
   if (password !== confirm) {
-    return { error: "Mật khẩu nhập lại không khớp" };
+    return loi("Mật khẩu nhập lại không khớp");
   }
   if (getUserByEmail(email)) {
-    return { error: "Email này đã có tài khoản. Bạn đăng nhập nhé." };
+    return loi("Email này đã có tài khoản. Bạn đăng nhập nhé.");
   }
 
   let userId: number;
   try {
     const info = db
       .prepare(
-        `INSERT INTO users (name, email, password_hash, role, phone, active)
-         VALUES (@name, @email, @password_hash, 'student', @phone, 1)`
+        `INSERT INTO users (name, email, password_hash, role, phone, branch, area, active)
+         VALUES (@name, @email, @password_hash, 'student', @phone, @branch, @area, 1)`
       )
       .run({
         name,
         email,
         password_hash: bcrypt.hashSync(password, 10),
         phone: phone || null,
+        branch,
+        area,
       });
     userId = Number(info.lastInsertRowid);
   } catch (err) {
     // Hai người đăng ký cùng email gần như cùng lúc: UNIQUE(email) sẽ chặn ở đây.
     if ((err as { code?: string }).code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return { error: "Email này đã có tài khoản. Bạn đăng nhập nhé." };
+      return loi("Email này đã có tài khoản. Bạn đăng nhập nhé.");
     }
     throw err;
   }

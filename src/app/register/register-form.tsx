@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { registerAction, type RegisterState } from "@/actions/auth";
+import { KHU_VUC, NOI_HOC } from "@/components/brand";
 import { IconAlert } from "@/components/icons";
 import { btn, field, label } from "@/components/ui";
 
@@ -9,6 +10,10 @@ const initialState: RegisterState = {};
 
 export default function RegisterForm() {
   const [state, formAction, pending] = useActionState(registerAction, initialState);
+  const v = state.values;
+  // React reset lại form sau mỗi lần chạy action. Với <input> thì defaultValue
+  // mới được áp lại, nhưng <select> chỉ nhận defaultValue lúc mount — đổi key
+  // để nó mount lại, không thì báo lỗi xong hai ô chọn nhảy về trống.
 
   return (
     <form action={formAction} className="space-y-4">
@@ -22,6 +27,8 @@ export default function RegisterForm() {
           type="text"
           required
           autoFocus
+          autoComplete="name"
+          defaultValue={v?.name ?? ""}
           className={field}
           placeholder="Nguyễn Văn A"
         />
@@ -37,6 +44,7 @@ export default function RegisterForm() {
           type="email"
           required
           autoComplete="email"
+          defaultValue={v?.email ?? ""}
           className={field}
           placeholder="ban@email.com"
         />
@@ -44,15 +52,67 @@ export default function RegisterForm() {
 
       <div>
         <label className={label} htmlFor="reg-phone">
-          Số điện thoại <span className="font-normal text-ink-400">(không bắt buộc)</span>
+          Số điện thoại
         </label>
         <input
           id="reg-phone"
           name="phone"
           type="tel"
+          required
+          autoComplete="tel"
+          defaultValue={v?.phone ?? ""}
           className={field}
           placeholder="09xx xxx xxx"
         />
+      </div>
+
+      <div>
+        <label className={label} htmlFor="reg-branch">
+          Bạn muốn học ở đâu?
+        </label>
+        <select
+          key={`branch-${v?.branch ?? ""}`}
+          id="reg-branch"
+          name="branch"
+          required
+          defaultValue={v?.branch ?? ""}
+          className={field}
+        >
+          <option value="" disabled>
+            — Chọn nơi học —
+          </option>
+          {NOI_HOC.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className={label} htmlFor="reg-area">
+          Khu vực bạn đang ở
+        </label>
+        <select
+          key={`area-${v?.area ?? ""}`}
+          id="reg-area"
+          name="area"
+          required
+          defaultValue={v?.area ?? ""}
+          className={field}
+        >
+          <option value="" disabled>
+            — Chọn khu vực —
+          </option>
+          {KHU_VUC.map((k) => (
+            <option key={k} value={k}>
+              {k}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-ink-400 mt-1.5">
+          Bên mình dựa vào đây để mở thêm quán gần chỗ bạn.
+        </p>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
@@ -100,8 +160,8 @@ export default function RegisterForm() {
       </button>
 
       <p className="text-xs text-ink-500 text-center leading-relaxed">
-        Tài khoản dùng để lưu tiến độ học của bạn. Nếu bạn đang học tại trung tâm, báo email này
-        cho trung tâm để được gắn vào lớp và xem lịch học.
+        Tạo xong là vào học 28 bài video ngay. Bên mình sẽ gọi lại để xếp lịch buổi học tại quán
+        nếu bạn muốn.
       </p>
     </form>
   );

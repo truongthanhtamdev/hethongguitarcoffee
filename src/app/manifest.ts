@@ -9,10 +9,10 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Piano Guitar Đệm Hát",
-    short_name: "Guitar Đệm Hát",
+    name: "Dạy Guitar Tại Quán Cà Phê",
+    short_name: "Guitar Cà Phê",
     description:
-      "Học guitar đệm hát theo lộ trình 36 buổi: hợp âm, metronome, lên dây đàn và máy đệm hát.",
+      "Học guitar đệm hát theo lộ trình 28 bài: hợp âm, metronome, lên dây đàn và máy đệm hát.",
     lang: "vi",
     start_url: "/student/learn",
     scope: "/",
@@ -27,7 +27,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
-      { name: "Lộ trình 36 buổi", url: "/student/learn" },
+      { name: "Lộ trình 28 bài", url: "/student/learn" },
       { name: "Thư viện hợp âm", url: "/student/chords" },
       { name: "Luyện tập", url: "/student/practice" },
     ],

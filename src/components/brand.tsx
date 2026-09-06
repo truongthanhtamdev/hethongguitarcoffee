@@ -12,6 +12,23 @@ export const BRAND = {
   ],
 };
 
+/** Nơi học khách chọn lúc đăng ký. Ngoài các quán đã mở còn có hai lựa chọn
+ *  học online — và "chưa có quán gần mình", để biết nên mở quán tiếp ở đâu. */
+export const NOI_HOC = [
+  ...BRAND.branches.map((b) => `${b.name} — ${b.address}`),
+  "Học online theo nhóm",
+  "Học online 1 kèm 1",
+  "Chưa có quán gần mình — mong mở thêm chi nhánh",
+];
+
+/** Khu vực khách đang ở. Đây là dữ liệu để quyết định mở chi nhánh mới. */
+export const KHU_VUC = [
+  "Tân Phú", "Tân Bình", "Bình Tân", "Gò Vấp", "Phú Nhuận", "Bình Thạnh",
+  "Quận 1", "Quận 3", "Quận 4", "Quận 5", "Quận 6", "Quận 7", "Quận 8",
+  "Quận 10", "Quận 11", "Quận 12", "Thủ Đức", "Bình Chánh", "Hóc Môn",
+  "Nhà Bè", "Củ Chi", "Tỉnh khác",
+];
+
 /** Số đẹp để hiển thị: 0965817021 -> 0965 817 021 */
 export function prettyPhone(p = BRAND.phone) {
   return p.replace(/^(\d{4})(\d{3})(\d{3})$/, "$1 $2 $3");

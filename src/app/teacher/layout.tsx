@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/guard";
 import { AppShell, type NavItem } from "@/components/app-shell";
+import { BRAND } from "@/components/brand";
 import { NotificationsBanner } from "@/components/notifications-banner";
 import { listClassesForTeacher, getAttendance, listUnreadNotifications } from "@/lib/queries";
 import { countUnread } from "@/lib/messages";
@@ -45,7 +46,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
 
   return (
     <AppShell
-      brandTitle="Piano Guitar Đệm Hát"
+      brandTitle={BRAND.short}
       userName={session.name}
       roleLabel="Giáo viên"
       links={links}

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BRAND } from "@/components/brand";
 import { requireSession } from "@/lib/guard";
 import { roleHomePath } from "@/lib/types";
 import { Logo } from "@/components/logo";
@@ -15,7 +16,7 @@ export default async function ChangePasswordPage() {
         <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           <span className="flex items-center gap-2.5 min-w-0">
             <Logo className="h-8 shrink-0" />
-            <span className="font-bold text-[15px] leading-tight">Piano Guitar Đệm Hát</span>
+            <span className="font-bold text-[15px] leading-tight">{BRAND.short}</span>
           </span>
           <Link
             href={roleHomePath(session.role)}

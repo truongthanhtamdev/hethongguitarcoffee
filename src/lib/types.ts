@@ -18,6 +18,8 @@ export interface UserRow {
   pay_per_session: number | null;
   languages: string; // comma-separated: "vi" | "vi,en"
   subjects: string; // comma-separated free text, e.g. "Guitar,Piano"; empty = not specified (matches any)
+  branch: string | null; // nơi khách chọn học lúc tự đăng ký
+  area: string | null; // khu vực khách đang ở — dùng để tính chỗ mở chi nhánh mới
   active: number;
   created_at: string;
 }
