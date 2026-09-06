@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Chỉ rõ nơi quét class thay vì để Tailwind tự dò: khi build bằng webpack nó
+   dò nhầm thư mục gốc và chỉ sinh ra được vài class, làm trang mất gần hết
+   giao diện. */
+@source "../**/*.{ts,tsx}";
+
 /* =========================================================================
    MusicNote design tokens — redesign 2025
    Bảng màu: navy (thương hiệu) · ivory (nền) · wood (accent guitar)
