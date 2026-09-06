@@ -195,6 +195,24 @@ function migrate() {
     CREATE INDEX IF NOT EXISTS idx_messages_cap ON messages(from_user_id, to_user_id, id);
     CREATE INDEX IF NOT EXISTS idx_messages_chua_doc ON messages(to_user_id, read_at);
 
+    -- Don dat dan khach gui tu trang ban hang. Khong buoc phai dang nhap:
+    -- khach de lai ten va so dien thoai la trung tam goi lai duoc.
+    CREATE TABLE IF NOT EXISTS orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_slug TEXT NOT NULL,
+      product_name TEXT NOT NULL,
+      product_price TEXT NOT NULL,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL,
+      customer_address TEXT,
+      note TEXT,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','contacted','done','cancelled')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_orders_moi ON orders(status, id);
+
     CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
     CREATE INDEX IF NOT EXISTS idx_classes_student_user ON classes(student_user_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read_at);

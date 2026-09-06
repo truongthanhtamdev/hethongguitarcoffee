@@ -65,6 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: "/admin/finance", label: "Doanh thu", icon: <IconChart className={ICON} /> },
         ]
       : []),
+    { href: "/admin/orders", label: "Đơn đặt đàn", icon: <IconPackage className={ICON} /> },
     { href: "/admin/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
     { href: "/admin/import", label: "Nhập dữ liệu", icon: <IconUpload className={ICON} /> },
     ...(session.role === "admin"

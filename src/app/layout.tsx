@@ -14,8 +14,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Piano Guitar Đệm Hát - Quản lý giáo viên",
-  description: "Điểm danh, chấm công và giao lớp cho giáo viên guitar online",
+  title: {
+    default: "Dạy Guitar Tại Quán Cà Phê — Học guitar dễ dàng & hiệu quả",
+    template: "%s — Dạy Guitar Tại Quán Cà Phê",
+  },
+  description:
+    "Học đệm hát từ con số 0: học tại quán cà phê, học online nhóm, kèm 1-1, kèm khoá video quay sẵn. Bán đàn cho người mới.",
   appleWebApp: {
     capable: true,
     title: "Guitar Đệm Hát",
