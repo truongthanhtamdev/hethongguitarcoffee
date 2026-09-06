@@ -179,6 +179,21 @@ function migrate() {
       PRIMARY KEY (user_id, practice_date)
     );
 
+    -- Tin nhắn 1-1 giữa hai người dùng. Không có bảng "cuộc trò chuyện" riêng:
+    -- một cuộc trò chuyện chính là toàn bộ tin nhắn giữa một cặp user, nên
+    -- không phải giữ hai bảng khớp nhau.
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      to_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      body TEXT NOT NULL,
+      read_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_messages_cap ON messages(from_user_id, to_user_id, id);
+    CREATE INDEX IF NOT EXISTS idx_messages_chua_doc ON messages(to_user_id, read_at);
+
     CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
     CREATE INDEX IF NOT EXISTS idx_classes_student_user ON classes(student_user_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read_at);

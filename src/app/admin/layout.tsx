@@ -1,8 +1,10 @@
 import { requireRole } from "@/lib/guard";
 import { AppShell, type NavItem } from "@/components/app-shell";
 import { listClassesByDay, listAttendance } from "@/lib/queries";
+import { countUnread } from "@/lib/messages";
 import { todayISO } from "@/lib/format";
 import {
+  IconBell,
   IconCalendarCheck,
   IconChart,
   IconClasses,
@@ -63,6 +65,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: "/admin/finance", label: "Doanh thu", icon: <IconChart className={ICON} /> },
         ]
       : []),
+    { href: "/admin/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
     { href: "/admin/import", label: "Nhập dữ liệu", icon: <IconUpload className={ICON} /> },
     ...(session.role === "admin"
       ? [
@@ -86,7 +89,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       userName={session.name}
       roleLabel={session.role === "admin" ? "Quản trị viên" : "Giáo vụ"}
       links={links}
-      alertCount={overdueTodayCount()}
+      alertCount={overdueTodayCount() + countUnread(session.userId)}
     >
       {children}
     </AppShell>

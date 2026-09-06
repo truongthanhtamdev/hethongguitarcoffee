@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/guard";
 import { AppShell, type NavItem } from "@/components/app-shell";
-import { IconCalendarCheck, IconGuitar, IconMusic, IconMic } from "@/components/icons";
+import { IconCalendarCheck, IconGuitar, IconMusic, IconMic, IconBell } from "@/components/icons";
+import { countUnread } from "@/lib/messages";
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   const session = await requireRole(["student"]);
@@ -10,6 +11,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
     { href: "/student/learn", label: "Học guitar", icon: <IconGuitar className="w-5 h-5" /> },
     { href: "/student/chords", label: "Hợp âm", icon: <IconMusic className="w-5 h-5" /> },
     { href: "/student/practice", label: "Luyện tập", icon: <IconMic className="w-5 h-5" /> },
+    { href: "/student/messages", label: "Tin nhắn", icon: <IconBell className="w-5 h-5" /> },
   ];
 
   return (
@@ -18,6 +20,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
       userName={session.name}
       roleLabel="Học viên"
       links={links}
+      alertCount={countUnread(session.userId)}
       maxWidth="max-w-4xl"
     >
       {children}

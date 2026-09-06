@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/guard";
 import { AppShell, type NavItem } from "@/components/app-shell";
 import { NotificationsBanner } from "@/components/notifications-banner";
 import { listClassesForTeacher, getAttendance, listUnreadNotifications } from "@/lib/queries";
+import { countUnread } from "@/lib/messages";
 import { todayISO } from "@/lib/format";
 import {
   IconCalendarCheck,
@@ -9,6 +10,7 @@ import {
   IconClock,
   IconHome,
   IconWallet,
+  IconBell,
 } from "@/components/icons";
 
 const ICON = "w-5 h-5";
@@ -25,6 +27,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
       icon: <IconCalendarCheck className={ICON} />,
     },
     { href: "/teacher/availability", label: "Lịch tuần", icon: <IconClock className={ICON} /> },
+    { href: "/teacher/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
     { href: "/teacher/earnings", label: "Thu nhập", icon: <IconWallet className={ICON} /> },
   ];
 
@@ -38,7 +41,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
       c.day_of_week === dow &&
       !getAttendance(c.id, todayStr)
   ).length;
-  const unread = listUnreadNotifications(session.userId).length;
+  const unread = listUnreadNotifications(session.userId).length + countUnread(session.userId);
 
   return (
     <AppShell
