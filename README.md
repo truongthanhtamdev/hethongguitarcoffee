@@ -9,10 +9,30 @@ một VPS nhỏ, không cần dịch vụ ngoài.
 
 | Vai trò | Quyền |
 |---|---|
-| **Admin** | Toàn quyền: tạo tài khoản cho Giáo vụ/Giáo viên/Học viên, quản lý giáo viên & lương/buổi, quản lý lớp, giao lớp, sửa điểm danh, xem/xuất báo cáo lương, quản lý doanh thu & lợi nhuận. |
+| **Admin** | Nhắn tin với mọi học viên và giáo viên. Toàn quyền: tạo tài khoản cho Giáo vụ/Giáo viên/Học viên, quản lý giáo viên & lương/buổi, quản lý lớp, giao lớp, sửa điểm danh, xem/xuất báo cáo lương, quản lý doanh thu & lợi nhuận. |
 | **Giáo vụ** (coordinator) | Tạo/sửa lớp học, giao lớp cho giáo viên, xem & sửa nhật ký điểm danh. Không xem/sửa được lương hay tài khoản. |
-| **Giáo viên** | Xem lớp được giao, **tự thêm lớp mới của mình** (học sinh + thứ/giờ học) và sửa lịch lớp mình đang dạy, điểm danh buổi học hôm nay (kèm nội dung bài học + tick "đã điểm danh trên Facebook"), đánh dấu khung giờ bận trong tuần, xem lịch dạy & thu nhập của mình. |
-| **Học viên** | Đăng nhập xem lớp học của mình: tiến độ gói học (đã học/còn lại bao nhiêu tiết) và nội dung các buổi học gần đây — phần này chỉ xem, không sửa. Ngoài ra có khu **tự học guitar**: lộ trình 36 buổi tự đánh dấu hoàn thành, thư viện hợp âm, metronome, lên dây đàn bằng mic và máy đệm hát. |
+| **Giáo viên** | Nhắn tin với học viên lớp mình (dùng để giao bài tập). Xem lớp được giao, **tự thêm lớp mới của mình** (học sinh + thứ/giờ học) và sửa lịch lớp mình đang dạy, điểm danh buổi học hôm nay (kèm nội dung bài học + tick "đã điểm danh trên Facebook"), đánh dấu khung giờ bận trong tuần, xem lịch dạy & thu nhập của mình. |
+| **Học viên** | Nhắn tin với giáo viên và trung tâm. Đăng nhập xem lớp học của mình: tiến độ gói học (đã học/còn lại bao nhiêu tiết) và nội dung các buổi học gần đây — phần này chỉ xem, không sửa. Ngoài ra có khu **tự học guitar**: lộ trình 36 buổi tự đánh dấu hoàn thành, thư viện hợp âm, metronome, lên dây đàn bằng mic và máy đệm hát. |
+
+### Tin nhắn
+
+Cả ba vai trò đều có mục **Tin nhắn** trong menu. Ai nhắn được với ai:
+
+| | Nhắn được với |
+|---|---|
+| Quản trị / Giáo vụ | Tất cả mọi người |
+| Giáo viên | Học viên **có lớp chung**, và trung tâm |
+| Học viên | Giáo viên đang dạy mình, và trung tâm |
+
+Giáo viên dùng luôn mục này để **giao bài tập** cho học viên. Số tin chưa đọc
+cộng vào chuông báo ở đầu trang; mở cuộc trò chuyện là tự đánh dấu đã đọc.
+
+Quyền được kiểm ở tầng máy chủ chứ không chỉ ẩn nút: mở thẳng đường dẫn tới
+người không được phép sẽ trả 404, và hành động gửi kiểm lại lần nữa trước khi
+ghi vào cơ sở dữ liệu.
+
+Hiện chỉ gửi được chữ, chưa gửi được ảnh hoặc file, và **chưa có thông báo
+đẩy** — người nhận phải mở app mới thấy tin mới.
 
 Lưu ý: hệ thống **không thay thế** việc điểm danh trên nhóm Facebook — giáo
 viên vẫn cần điểm danh song song ở cả hai nơi như quy định hiện tại của
