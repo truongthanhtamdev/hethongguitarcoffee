@@ -478,6 +478,7 @@ function migrate() {
   seedClassPackagesOnce();
   seedCoursesOnce();
   seedGiaLopNhomOnce();
+  seedGiaBaGoiConLaiOnce();
 }
 
 // Packages used to live as two columns directly on `classes`
@@ -649,7 +650,7 @@ function seedClassPackagesOnce() {
       so_buoi: 12,
       phut: 90,
       quyen_loi:
-        "Chi phí nhẹ nhất trong các hình thức có giáo viên\nHọc cùng nhóm, có bạn tập chung\nKhông phải đi lại\nNhắn hỏi giáo viên giữa các buổi",
+        "Chi phí nhẹ nhất trong các hình thức có giáo viên\nNhóm tối đa 10 người nên giáo viên vẫn nhìn được từng bạn\nKhông phải đi lại\nNhắn hỏi giáo viên giữa các buổi",
       danh_cho: "Bạn muốn có giáo viên kèm nhưng chưa muốn đóng nhiều.",
     },
   ];
@@ -690,6 +691,56 @@ function seedGiaLopNhomOnce() {
       ghiChu:
         "Hiện dạy tại chi nhánh Đô Đốc Thủ, Tân Phú. Quận nào gom đủ 2-3 học viên đăng ký là bên mình mở thêm điểm học ở đó.",
     });
+    db.prepare("INSERT INTO schema_migrations (name) VALUES (?)").run(name);
+  });
+  run();
+}
+
+/**
+ * Học phí ba gói còn lại. Mỗi gói một kiểu tính khác nhau nên bảng giá ghi rõ
+ * đơn giá mỗi buổi, để khách tự thấy đóng gói dài hơn thì rẻ hơn.
+ *
+ * Số buổi để 0 ở gói có nhiều mức — một con số duy nhất trên thẻ sẽ nói sai
+ * một trong hai mức.
+ */
+function seedGiaBaGoiConLaiOnce() {
+  const name = "gia_ba_goi_con_lai_v1";
+  if (db.prepare("SELECT 1 FROM schema_migrations WHERE name = ?").get(name)) return;
+
+  const run = db.transaction(() => {
+    const dien = db.prepare(
+      `UPDATE class_packages
+          SET price = @price, so_buoi = @soBuoi, bang_gia = @gia, lich_hoc = @lich
+        WHERE slug = @slug AND price = 0`
+    );
+
+    dien.run({
+      slug: "kem-1-1-tai-nha",
+      price: 7200000,
+      soBuoi: 0,
+      gia: [
+        "16 buổi · 450.000đ mỗi buổi|7200000",
+        "30 buổi · 400.000đ mỗi buổi|12000000",
+      ].join("\n"),
+      lich: "Mỗi buổi 60 phút, giờ học thoả thuận theo lịch của bạn",
+    });
+
+    dien.run({
+      slug: "online-1-1",
+      price: 3250000,
+      soBuoi: 10,
+      gia: "10 buổi · 325.000đ mỗi buổi|3250000",
+      lich: "Mỗi buổi 60 phút, giờ học thoả thuận theo lịch của bạn",
+    });
+
+    dien.run({
+      slug: "online-nhom",
+      price: 900000,
+      soBuoi: 0,
+      gia: "3 tháng|900000",
+      lich: "Nhóm tối đa 10 người",
+    });
+
     db.prepare("INSERT INTO schema_migrations (name) VALUES (?)").run(name);
   });
   run();
