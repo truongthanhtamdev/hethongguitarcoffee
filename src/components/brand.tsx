@@ -46,27 +46,36 @@ export function PublicHeader() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center gap-3">
         <Link href="/" className="flex items-center gap-2.5 no-underline min-w-0">
           <BrandMark className="h-9 shrink-0" />
-          <span className="font-bold text-ink-900 truncate">{BRAND.short}</span>
+          {/* Trên điện thoại chỉ còn logo: có 4 mục bên phải, để cả tên nữa
+              là chữ bị cắt cụt thành "Gu..." và nút kêu gọi vỡ làm ba dòng. */}
+          <span className="font-bold text-ink-900 truncate hidden sm:block">{BRAND.short}</span>
         </Link>
 
-        <nav className="ml-auto flex items-center gap-1 sm:gap-2">
+        <nav className="ml-auto flex items-center gap-0.5 sm:gap-2">
+          <Link
+            href="/khoa-hoc"
+            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
+          >
+            Khoá học
+          </Link>
           <Link
             href="/shop"
-            className="px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline"
+            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
           >
             Mua đàn
           </Link>
           <Link
             href="/login"
-            className="px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline"
+            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
           >
             Đăng nhập
           </Link>
           <Link
             href="/register"
-            className="px-3.5 py-2 rounded-xl text-sm font-semibold bg-wood-500 hover:bg-wood-600 text-white no-underline"
+            className="px-3 sm:px-3.5 py-2 rounded-xl text-sm font-semibold bg-wood-500 hover:bg-wood-600 text-white no-underline whitespace-nowrap"
           >
-            Học thử miễn phí
+            <span className="sm:hidden">Học thử</span>
+            <span className="hidden sm:inline">Học thử miễn phí</span>
           </Link>
         </nav>
       </div>

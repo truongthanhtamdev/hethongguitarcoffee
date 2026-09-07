@@ -230,6 +230,48 @@ function migrate() {
 
     CREATE INDEX IF NOT EXISTS idx_password_resets_moi ON password_resets(status, id);
 
+    -- Đơn mua khoá học quay sẵn có thu tiền (khoá đệm hát 28 bài vẫn miễn phí,
+    -- không đi qua bảng này).
+    --
+    -- Giá, tên khoá và hoa hồng đều chép lại vào đơn chứ không tra ngược sang
+    -- danh sách khoá: sau này đổi giá hay đổi tỉ lệ chia thì các đơn cũ vẫn
+    -- giữ đúng con số lúc chốt, không thì sổ hoa hồng sai hết.
+    CREATE TABLE IF NOT EXISTS course_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      course_slug TEXT NOT NULL,
+      course_name TEXT NOT NULL,
+      price INTEGER NOT NULL,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL,
+      note TEXT,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      -- Giáo viên đứng khoá, người được chia hoa hồng. Rỗng khi khoá chưa gắn
+      -- được với tài khoản giáo viên nào — lúc đó hoa hồng vẫn ghi nhận để
+      -- quản trị tự đối chiếu.
+      teacher_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      commission_percent INTEGER NOT NULL DEFAULT 0,
+      commission_amount INTEGER NOT NULL DEFAULT 0,
+      commission_paid_at TEXT,
+      status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','paid','cancelled')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      paid_at TEXT,
+      handled_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_course_orders_moi ON course_orders(status, id);
+    CREATE INDEX IF NOT EXISTS idx_course_orders_teacher ON course_orders(teacher_id, status);
+
+    -- Ai được xem khoá nào. Tách khỏi course_orders vì còn cấp tay: học viên
+    -- đang học lớp tại quán có thể được tặng khoá mà không có đơn nào.
+    CREATE TABLE IF NOT EXISTS course_access (
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      course_slug TEXT NOT NULL,
+      order_id INTEGER REFERENCES course_orders(id) ON DELETE SET NULL,
+      granted_at TEXT NOT NULL DEFAULT (datetime('now')),
+      granted_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      PRIMARY KEY (user_id, course_slug)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
     CREATE INDEX IF NOT EXISTS idx_classes_student_user ON classes(student_user_id);
     CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, read_at);

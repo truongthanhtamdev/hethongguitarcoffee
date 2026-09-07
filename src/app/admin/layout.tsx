@@ -9,6 +9,7 @@ import {
   IconBell,
   IconCalendarCheck,
   IconChart,
+  IconGuitar,
   IconClasses,
   IconHome,
   IconKey,
@@ -37,6 +38,14 @@ function overdueTodayCount(): number {
 }
 
 /** Số khách đang chờ được cấp lại mật khẩu — cộng vào chuông cảnh báo. */
+/** Đơn mua khoá học chưa thu tiền — cộng vào chuông cảnh báo. */
+function pendingCourseOrderCount(): number {
+  const row = db
+    .prepare("SELECT COUNT(*) AS c FROM course_orders WHERE status = 'new'")
+    .get() as { c: number };
+  return row.c;
+}
+
 function pendingResetCount(): number {
   const row = db
     .prepare("SELECT COUNT(*) AS c FROM password_resets WHERE status = 'new'")
@@ -77,6 +86,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         ]
       : []),
     { href: "/admin/orders", label: "Đơn đặt đàn", icon: <IconPackage className={ICON} /> },
+    { href: "/admin/khoa-hoc", label: "Khoá học quay sẵn", icon: <IconGuitar className={ICON} /> },
     { href: "/admin/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
     { href: "/admin/quen-mat-khau", label: "Quên mật khẩu", icon: <IconKey className={ICON} /> },
     { href: "/admin/import", label: "Nhập dữ liệu", icon: <IconUpload className={ICON} /> },
@@ -102,7 +112,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       userName={session.name}
       roleLabel={session.role === "admin" ? "Quản trị viên" : "Giáo vụ"}
       links={links}
-      alertCount={overdueTodayCount() + countUnread(session.userId) + pendingResetCount()}
+      alertCount={overdueTodayCount() + countUnread(session.userId) + pendingResetCount() + pendingCourseOrderCount()}
     >
       {children}
     </AppShell>

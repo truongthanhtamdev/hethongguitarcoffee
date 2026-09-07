@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { roleHomePath } from "@/lib/types";
 import { TOTAL_LESSONS, STAGES } from "@/lib/curriculum";
 import { GUITARS } from "@/lib/shop";
+import { activeCourses, tienVN } from "@/lib/courses";
 import { BRAND, BrandMark, PublicFooter, PublicHeader, prettyPhone } from "@/components/brand";
 
 /** Bốn dịch vụ của trung tâm. */
@@ -42,6 +43,7 @@ export default async function TrangChu() {
   }
 
   const dan = GUITARS.filter((g) => !g.soldOut).slice(0, 4);
+  const khoaNangCao = activeCourses();
 
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
@@ -171,6 +173,37 @@ export default async function TrangChu() {
             </div>
           </div>
         </section>
+
+        {/* Khoá nâng cao có thu tiền */}
+        {khoaNangCao.length > 0 && (
+          <section className="max-w-6xl mx-auto px-4 py-14">
+            <h2 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight">
+              Học tiếp lên nâng cao
+            </h2>
+            <p className="text-ink-500 mt-1.5 max-w-2xl">
+              Đệm hát xong rồi muốn chơi đàn một mình mà vẫn ra bài? Các khoá dưới đây do giáo viên
+              của bên mình trực tiếp đứng lớp và quay.
+            </p>
+
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-7">
+              {khoaNangCao.map((c) => (
+                <li key={c.slug}>
+                  <Link
+                    href={`/khoa-hoc/${c.slug}`}
+                    className="flex flex-col h-full rounded-2xl border border-navy-100 bg-white p-5 hover:shadow-md transition no-underline"
+                  >
+                    <h3 className="font-bold text-ink-900 leading-snug">{c.name}</h3>
+                    <p className="text-sm text-ink-500 mt-1.5 flex-1">{c.tagline}</p>
+                    <p className="text-sm text-ink-500 mt-3">Giáo viên: {c.teacherName}</p>
+                    <p className="text-wood-600 font-bold text-xl mt-1 tabular">
+                      {tienVN(c.price)}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Bán đàn */}
         <section className="max-w-6xl mx-auto px-4 py-14">

@@ -12,6 +12,7 @@ import {
   IconHome,
   IconWallet,
   IconBell,
+  IconGuitar,
 } from "@/components/icons";
 
 const ICON = "w-5 h-5";
@@ -30,6 +31,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
     { href: "/teacher/availability", label: "Lịch tuần", icon: <IconClock className={ICON} /> },
     { href: "/teacher/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
     { href: "/teacher/earnings", label: "Thu nhập", icon: <IconWallet className={ICON} /> },
+    { href: "/teacher/hoa-hong", label: "Bán khoá học", icon: <IconGuitar className={ICON} /> },
   ];
 
   // Badge chuông: lớp hôm nay chưa điểm danh + thông báo chưa đọc.

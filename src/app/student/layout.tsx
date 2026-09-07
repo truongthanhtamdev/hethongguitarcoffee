@@ -8,6 +8,7 @@ import {
   IconMic,
   IconBell,
   IconPackage,
+  IconViolin,
 } from "@/components/icons";
 import { countUnread } from "@/lib/messages";
 
@@ -17,6 +18,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
   const links: NavItem[] = [
     { href: "/student", label: "Lịch học của tôi", icon: <IconCalendarCheck className="w-5 h-5" /> },
     { href: "/student/learn", label: "Học guitar", icon: <IconGuitar className="w-5 h-5" /> },
+    { href: "/student/khoa-hoc", label: "Khoá của tôi", icon: <IconViolin className="w-5 h-5" /> },
     { href: "/student/chords", label: "Hợp âm", icon: <IconMusic className="w-5 h-5" /> },
     { href: "/student/practice", label: "Luyện tập", icon: <IconMic className="w-5 h-5" /> },
     { href: "/student/messages", label: "Tin nhắn", icon: <IconBell className="w-5 h-5" /> },
