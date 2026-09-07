@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { COURSES, courseBySlug, tienVN } from "@/lib/courses";
+import { baiCuaKhoa, courseBySlug, tachDong, tienVN } from "@/lib/courses";
 import { getSession } from "@/lib/auth";
 import { coQuyenXem, donDangChoCuaHocVien } from "@/lib/course-sales";
 import { BRAND, PublicFooter, PublicHeader, prettyPhone } from "@/components/brand";
 import { IconCheckCircle } from "@/components/icons";
+import VideoPlayer from "@/components/video-player";
+import { soDu } from "@/lib/wallet";
 import CourseOrderForm from "./order-form";
-
-export function generateStaticParams() {
-  return COURSES.map((c) => ({ slug: c.slug }));
-}
+import MuaBangVi from "./mua-bang-vi";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -20,11 +19,20 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const c = courseBySlug(slug);
-  if (!c || !c.active) notFound();
+  if (!c || c.status !== "published") notFound();
 
   const session = await getSession();
   const daMua = session ? coQuyenXem(session.userId, slug) : false;
   const donCho = session && !daMua ? donDangChoCuaHocVien(session.userId, slug) : undefined;
+  // Học viên đã đăng nhập thì mua thẳng bằng ví, mở khoá ngay. Khách vãng lai
+  // vẫn để lại số điện thoại như cũ — bắt đăng ký mới được mua là mất khách.
+  const laHocVien = session?.role === "student";
+  const viDu = laHocVien ? soDu(session.userId) : 0;
+
+  const bai = baiCuaKhoa(c.id);
+  const xemThu = bai.find((b) => b.free_preview && b.video);
+  const ketQua = tachDong(c.ket_qua);
+  const noiDung = tachDong(c.noi_dung);
 
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
@@ -42,50 +50,91 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
             </h1>
             <p className="text-ink-600 mt-3">{c.tagline}</p>
 
-            <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-6">
-              <p className="font-bold text-ink-900">Học xong bạn làm được gì</p>
-              <ul className="mt-3 space-y-2">
-                {c.ketQua.map((k) => (
-                  <li key={k} className="flex gap-2.5 text-ink-700">
-                    <IconCheckCircle className="w-5 h-5 shrink-0 text-mint-600 mt-0.5" />
-                    <span>{k}</span>
+            {xemThu && (
+              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-6">
+                <p className="font-bold text-ink-900 mb-3">Xem thử: {xemThu.title}</p>
+                <VideoPlayer url={xemThu.video ?? ""} title={xemThu.title} />
+              </div>
+            )}
+
+            {ketQua.length > 0 && (
+              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
+                <p className="font-bold text-ink-900">Học xong bạn làm được gì</p>
+                <ul className="mt-3 space-y-2">
+                  {ketQua.map((k) => (
+                    <li key={k} className="flex gap-2.5 text-ink-700">
+                      <IconCheckCircle className="w-5 h-5 shrink-0 text-mint-600 mt-0.5" />
+                      <span>{k}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
+              <p className="font-bold text-ink-900">Giáo trình — {bai.length} bài</p>
+              <ol className="mt-3 divide-y divide-navy-100">
+                {bai.map((b, i) => (
+                  <li key={b.id} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <span className="shrink-0 w-7 h-7 rounded-lg bg-ivory-100 text-ink-500 grid place-items-center text-xs font-bold tabular">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-medium text-ink-900">{b.title}</span>
+                      {b.description && (
+                        <span className="block text-sm text-ink-500 mt-0.5">{b.description}</span>
+                      )}
+                    </span>
+                    {!!b.free_preview && (
+                      <span className="ml-auto shrink-0 self-start text-[11px] font-semibold rounded-full bg-mint-50 text-mint-700 px-2 py-0.5">
+                        Xem thử
+                      </span>
+                    )}
                   </li>
                 ))}
-              </ul>
-            </div>
-
-            <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
-              <p className="font-bold text-ink-900">Nội dung khoá học</p>
-              <ol className="mt-3 space-y-2 list-decimal list-inside text-ink-700 marker:text-ink-400 marker:font-semibold">
-                {c.noiDung.map((n) => (
-                  <li key={n}>{n}</li>
-                ))}
               </ol>
-              <p className="text-sm text-ink-500 mt-4">{c.soLuong}</p>
             </div>
 
-            <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
-              <p className="font-bold text-ink-900">Khoá này dành cho ai</p>
-              <p className="text-ink-700 mt-2">{c.danhCho}</p>
-              <p className="text-ink-500 text-sm mt-3">
-                Chưa đệm hát được thì học khoá cơ bản{" "}
-                <Link href="/register" className="font-semibold text-wood-600">
-                  28 bài miễn phí
-                </Link>{" "}
-                trước đã, xong rồi quay lại khoá này.
-              </p>
-            </div>
+            {noiDung.length > 0 && (
+              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
+                <p className="font-bold text-ink-900">Khoá này dạy những gì</p>
+                <ul className="mt-3 space-y-2 text-ink-700">
+                  {noiDung.map((n) => (
+                    <li key={n} className="flex gap-2">
+                      <span className="text-ink-400">•</span>
+                      {n}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {c.danh_cho && (
+              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
+                <p className="font-bold text-ink-900">Khoá này dành cho ai</p>
+                <p className="text-ink-700 mt-2 whitespace-pre-line">{c.danh_cho}</p>
+                <p className="text-ink-500 text-sm mt-3">
+                  Chưa đệm hát được thì học khoá cơ bản{" "}
+                  <Link href="/register" className="font-semibold text-wood-600">
+                    28 bài miễn phí
+                  </Link>{" "}
+                  trước đã, xong rồi quay lại khoá này.
+                </p>
+              </div>
+            )}
           </div>
 
           <aside className="lg:sticky lg:top-20 space-y-3">
             <div className="rounded-2xl border border-navy-100 bg-white p-5">
               <p className="text-3xl font-bold text-wood-600 tabular">{tienVN(c.price)}</p>
-              {c.priceOld > 0 && (
-                <p className="text-sm text-ink-400 line-through tabular">{tienVN(c.priceOld)}</p>
+              {c.price_old > 0 && (
+                <p className="text-sm text-ink-400 line-through tabular">{tienVN(c.price_old)}</p>
               )}
-              <p className="text-sm text-ink-500 mt-1">Đóng một lần, học không giới hạn.</p>
+              <p className="text-sm text-ink-500 mt-1">
+                Đóng một lần, học không giới hạn. {bai.length} bài video.
+              </p>
               <p className="text-sm text-ink-500 mt-3">
-                Giáo viên đứng khoá: <b className="text-ink-900">{c.teacherName}</b>
+                Giáo viên đứng khoá: <b className="text-ink-900">{c.teacher_name}</b>
               </p>
             </div>
 
@@ -110,6 +159,14 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
                   .
                 </p>
               </div>
+            ) : laHocVien ? (
+              <MuaBangVi
+                slug={c.slug}
+                gia={c.price}
+                soDu={viDu}
+                giaHienThi={tienVN(c.price)}
+                soDuHienThi={tienVN(viDu)}
+              />
             ) : (
               <CourseOrderForm slug={c.slug} name={c.name} price={tienVN(c.price)} />
             )}

@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { roleHomePath } from "@/lib/types";
 import { TOTAL_LESSONS, STAGES } from "@/lib/curriculum";
 import { GUITARS } from "@/lib/shop";
-import { activeCourses, tienVN } from "@/lib/courses";
+import { khoaDangBan, tienVN } from "@/lib/courses";
 import { BRAND, BrandMark, PublicFooter, PublicHeader, prettyPhone } from "@/components/brand";
 
 /** Bốn dịch vụ của trung tâm. */
@@ -43,7 +43,7 @@ export default async function TrangChu() {
   }
 
   const dan = GUITARS.filter((g) => !g.soldOut).slice(0, 4);
-  const khoaNangCao = activeCourses();
+  const khoaNangCao = khoaDangBan();
 
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
@@ -194,7 +194,7 @@ export default async function TrangChu() {
                   >
                     <h3 className="font-bold text-ink-900 leading-snug">{c.name}</h3>
                     <p className="text-sm text-ink-500 mt-1.5 flex-1">{c.tagline}</p>
-                    <p className="text-sm text-ink-500 mt-3">Giáo viên: {c.teacherName}</p>
+                    <p className="text-sm text-ink-500 mt-3">Giáo viên: {c.teacher_name}</p>
                     <p className="text-wood-600 font-bold text-xl mt-1 tabular">
                       {tienVN(c.price)}
                     </p>

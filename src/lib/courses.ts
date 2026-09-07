@@ -1,81 +1,50 @@
 /**
- * Các khoá học quay sẵn bán trên web.
+ * Khoá học quay sẵn có thu tiền.
  *
- * Khoá đệm hát cơ bản 28 bài KHÔNG nằm ở đây: nó vẫn tặng miễn phí cho mọi
- * người đăng ký tài khoản, đó là thứ kéo khách vào. Chỗ này chỉ chứa các khoá
- * nâng cao có thu tiền.
+ * Giáo viên tự soạn giáo trình, tự đặt giá và gửi duyệt; quản trị duyệt xong
+ * khoá mới lên trang công khai. Bán được thì chia đôi doanh thu với nền tảng
+ * — tỉ lệ nằm trên từng khoá nên khoá nào thoả thuận khác cũng được.
  *
- * Hợp tác với giáo viên: mỗi khoá ghi rõ giáo viên đứng khoá và phần trăm họ
- * được chia trên từng lượt bán. Số tiền hoa hồng chốt lại lúc quản trị xác
- * nhận đã thu tiền, rồi nằm yên trong đơn — sau này có đổi tỉ lệ cũng không
- * làm sai các đơn cũ.
- *
- * Thêm khoá mới: chép một khối trong COURSES, đặt slug mới. Không cần đụng
- * cơ sở dữ liệu.
+ * Khoá đệm hát cơ bản 28 bài không đi qua đây: nó là giáo trình cứng của
+ * trung tâm trong curriculum.ts và luôn miễn phí.
  */
 
+import { db } from "./db";
+
+/** Phần trăm giáo viên hưởng khi chưa thoả thuận gì khác. */
+export const HOA_HONG_MAC_DINH = 50;
+
+export type CourseStatus = "draft" | "pending" | "published" | "hidden";
+
 export interface Course {
-  /** Mã trong đường dẫn /khoa-hoc/<slug> */
+  id: number;
   slug: string;
+  teacher_id: number | null;
+  teacher_name: string;
   name: string;
   tagline: string;
-  /** Giá bán, đơn vị đồng */
   price: number;
-  /** Giá gốc gạch ngang; 0 nghĩa là không giảm */
-  priceOld: number;
-  /** Email tài khoản giáo viên đứng khoá — dùng để tìm ra người nhận hoa hồng */
-  teacherEmail: string;
-  /** Tên giáo viên hiển thị cho khách, kể cả khi chưa có tài khoản trong hệ thống */
-  teacherName: string;
-  /** Phần trăm giá bán chia cho giáo viên */
-  commissionPercent: number;
-  soLuong: string;
-  /** Học xong làm được gì */
-  ketQua: string[];
-  /** Nội dung chính của khoá */
-  noiDung: string[];
-  /** Ai nên học */
-  danhCho: string;
-  active: boolean;
+  price_old: number;
+  commission_percent: number;
+  /** Mỗi dòng một ý */
+  ket_qua: string;
+  noi_dung: string;
+  danh_cho: string;
+  status: CourseStatus;
+  reject_note: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
 }
 
-export const COURSES: Course[] = [
-  {
-    slug: "fingerpicking",
-    name: "Fingerpicking — đệm và chơi giai điệu bằng ngón",
-    tagline: "Từ đệm hát bằng phím gảy sang chơi bằng ngón: rải, móc, và chơi trọn bài không cần hát.",
-    price: 800_000,
-    priceOld: 0,
-    teacherEmail: "thang@guitarcafe.local",
-    teacherName: "Thầy Thắng",
-    commissionPercent: 50,
-    soLuong: "Video quay sẵn, học không giới hạn thời gian",
-    ketQua: [
-      "Móc dây bằng ngón cái, trỏ, giữa, áp út đều tiếng và không vấp",
-      "Rải hợp âm theo nhiều mẫu ngón khác nhau cho cùng một bài",
-      "Vừa giữ bè trầm bằng ngón cái vừa chơi giai điệu ở dây trên",
-      "Chơi trọn vẹn một bài fingerstyle không cần hát",
-    ],
-    noiDung: [
-      "Tư thế tay phải, để móng và cách lấy tiếng sạch",
-      "Các mẫu rải cơ bản: p-i-m-a và biến thể",
-      "Bè trầm luân phiên (alternating bass)",
-      "Ghép giai điệu vào nền hợp âm",
-      "Kỹ thuật điểm xuyết: hammer-on, pull-off, slide, harmonic",
-      "Tập trọn bài theo từng câu, có tốc độ chậm để tập theo",
-    ],
-    danhCho:
-      "Bạn đã đệm hát được vài bài bằng phím gảy, bấm chuyển hợp âm tương đối mượt và muốn chơi đàn một mình mà vẫn ra bài.",
-    active: true,
-  },
-];
-
-export function courseBySlug(slug: string): Course | undefined {
-  return COURSES.find((c) => c.slug === slug);
-}
-
-export function activeCourses(): Course[] {
-  return COURSES.filter((c) => c.active);
+export interface CourseLesson {
+  id: number;
+  course_id: number;
+  position: number;
+  title: string;
+  description: string | null;
+  video: string | null;
+  free_preview: number;
 }
 
 /** 800000 -> "800.000 ₫" */
@@ -83,7 +52,108 @@ export function tienVN(n: number): string {
   return `${n.toLocaleString("vi-VN")} ₫`;
 }
 
-/** Hoa hồng giáo viên được hưởng cho một lượt bán khoá này. */
-export function hoaHongCuaKhoa(c: Course): number {
-  return Math.round((c.price * c.commissionPercent) / 100);
+/** Số tiền giáo viên nhận cho một lượt bán khoá này. */
+export function hoaHongCuaKhoa(c: Pick<Course, "price" | "commission_percent">): number {
+  return Math.round((c.price * c.commission_percent) / 100);
 }
+
+/** Tách ô nhập nhiều dòng thành danh sách, bỏ dòng trống. */
+export function tachDong(s: string): string[] {
+  return s
+    .split("\n")
+    .map((d) => d.trim())
+    .filter(Boolean);
+}
+
+const DAU = "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ";
+const KHONG_DAU = "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd";
+
+/** "Fingerpicking nâng cao" -> "fingerpicking-nang-cao" */
+export function taoSlug(ten: string): string {
+  const s = [...ten.toLowerCase()]
+    .map((c) => {
+      const i = DAU.indexOf(c);
+      return i >= 0 ? KHONG_DAU[i] : c;
+    })
+    .join("");
+  return s.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "khoa-hoc";
+}
+
+/** Thêm hậu tố khi trùng: fingerpicking, fingerpicking-2, fingerpicking-3... */
+export function slugChuaDung(goc: string): string {
+  let slug = goc;
+  let n = 2;
+  while (db.prepare("SELECT 1 FROM courses WHERE slug = ?").get(slug)) {
+    slug = `${goc}-${n++}`;
+  }
+  return slug;
+}
+
+export function courseById(id: number): Course | undefined {
+  return db.prepare("SELECT * FROM courses WHERE id = ?").get(id) as Course | undefined;
+}
+
+export function courseBySlug(slug: string): Course | undefined {
+  return db.prepare("SELECT * FROM courses WHERE slug = ?").get(slug) as Course | undefined;
+}
+
+/** Khoá đang bán trên trang công khai. */
+export function khoaDangBan(): Course[] {
+  return db
+    .prepare("SELECT * FROM courses WHERE status = 'published' ORDER BY published_at DESC, id DESC")
+    .all() as Course[];
+}
+
+export function khoaCuaGiaoVien(teacherId: number): Course[] {
+  return db
+    .prepare("SELECT * FROM courses WHERE teacher_id = ? ORDER BY id DESC")
+    .all(teacherId) as Course[];
+}
+
+export function tatCaKhoa(): Course[] {
+  return db.prepare("SELECT * FROM courses ORDER BY id DESC").all() as Course[];
+}
+
+export function khoaChoDuyet(): Course[] {
+  return db
+    .prepare("SELECT * FROM courses WHERE status = 'pending' ORDER BY updated_at")
+    .all() as Course[];
+}
+
+export function baiCuaKhoa(courseId: number): CourseLesson[] {
+  return db
+    .prepare("SELECT * FROM course_lessons WHERE course_id = ? ORDER BY position, id")
+    .all(courseId) as CourseLesson[];
+}
+
+export function demBai(courseId: number): number {
+  const r = db
+    .prepare("SELECT COUNT(*) AS c FROM course_lessons WHERE course_id = ?")
+    .get(courseId) as { c: number };
+  return r.c;
+}
+
+/**
+ * Khoá gửi duyệt được chưa. Kiểm ở một chỗ để trang giáo viên và server action
+ * cùng nói một điều — không thì nút hiện ra mà bấm vào lại báo lỗi.
+ */
+export function thieuGiDeGuiDuyet(c: Course): string[] {
+  const thieu: string[] = [];
+  if (!c.name.trim()) thieu.push("tên khoá");
+  if (!c.tagline.trim()) thieu.push("giới thiệu ngắn");
+  if (c.price <= 0) thieu.push("giá bán");
+  if (tachDong(c.ket_qua).length === 0) thieu.push("phần học xong làm được gì");
+  if (tachDong(c.noi_dung).length === 0) thieu.push("nội dung khoá học");
+  if (demBai(c.id) === 0) thieu.push("ít nhất một bài giảng");
+  return thieu;
+}
+
+export const NHAN_TRANG_THAI: Record<
+  CourseStatus,
+  { chu: string; tone: "neutral" | "amber" | "mint" }
+> = {
+  draft: { chu: "Đang soạn", tone: "neutral" },
+  pending: { chu: "Chờ duyệt", tone: "amber" },
+  published: { chu: "Đang bán", tone: "mint" },
+  hidden: { chu: "Đã ẩn", tone: "neutral" },
+};

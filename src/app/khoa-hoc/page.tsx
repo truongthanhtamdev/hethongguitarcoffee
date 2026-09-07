@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { activeCourses, tienVN } from "@/lib/courses";
+import { khoaDangBan, demBai, tienVN } from "@/lib/courses";
 import { TOTAL_LESSONS } from "@/lib/curriculum";
 import { PublicFooter, PublicHeader } from "@/components/brand";
 
 export const metadata = { title: "Khoá học quay sẵn" };
 
 export default function KhoaHocPage() {
-  const courses = activeCourses();
+  const courses = khoaDangBan();
 
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
@@ -37,24 +37,34 @@ export default function KhoaHocPage() {
 
         <h2 className="text-xl font-bold text-ink-900 mt-10">Khoá nâng cao</h2>
 
-        <ul className="grid sm:grid-cols-2 gap-4 mt-4">
-          {courses.map((c) => (
-            <li key={c.slug}>
-              <Link
-                href={`/khoa-hoc/${c.slug}`}
-                className="flex flex-col h-full rounded-2xl border border-navy-100 bg-white p-5 hover:shadow-md transition no-underline"
-              >
-                <p className="text-lg font-bold text-ink-900 leading-snug">{c.name}</p>
-                <p className="text-sm text-ink-500 mt-1.5 flex-1">{c.tagline}</p>
-                <p className="text-sm text-ink-500 mt-3">Giáo viên: {c.teacherName}</p>
-                <p className="text-wood-600 font-bold text-xl mt-1 tabular">{tienVN(c.price)}</p>
-                {c.priceOld > 0 && (
-                  <p className="text-xs text-ink-400 line-through tabular">{tienVN(c.priceOld)}</p>
-                )}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {courses.length === 0 ? (
+          <p className="text-ink-500 mt-3">
+            Các thầy cô đang soạn khoá mới. Bạn quay lại sau ít hôm nhé.
+          </p>
+        ) : (
+          <ul className="grid sm:grid-cols-2 gap-4 mt-4">
+            {courses.map((c) => (
+              <li key={c.slug}>
+                <Link
+                  href={`/khoa-hoc/${c.slug}`}
+                  className="flex flex-col h-full rounded-2xl border border-navy-100 bg-white p-5 hover:shadow-md transition no-underline"
+                >
+                  <p className="text-lg font-bold text-ink-900 leading-snug">{c.name}</p>
+                  <p className="text-sm text-ink-500 mt-1.5 flex-1">{c.tagline}</p>
+                  <p className="text-sm text-ink-500 mt-3">
+                    {c.teacher_name} · {demBai(c.id)} bài
+                  </p>
+                  <p className="text-wood-600 font-bold text-xl mt-1 tabular">{tienVN(c.price)}</p>
+                  {c.price_old > 0 && (
+                    <p className="text-xs text-ink-400 line-through tabular">
+                      {tienVN(c.price_old)}
+                    </p>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </main>
 
       <PublicFooter />

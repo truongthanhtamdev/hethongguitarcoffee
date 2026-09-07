@@ -230,6 +230,56 @@ function migrate() {
 
     CREATE INDEX IF NOT EXISTS idx_password_resets_moi ON password_resets(status, id);
 
+    -- Khoá học quay sẵn có thu tiền. Giáo viên tự soạn giáo trình và tự đăng
+    -- khoá; quản trị duyệt rồi mới lên trang công khai. Doanh thu chia đôi với
+    -- nền tảng — tỉ lệ ghi ngay trên khoá để mỗi khoá thoả thuận riêng được.
+    --
+    -- Khoá đệm hát 28 bài KHÔNG nằm ở đây: nó là giáo trình cứng của trung tâm
+    -- trong src/lib/curriculum.ts và luôn miễn phí.
+    CREATE TABLE IF NOT EXISTS courses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT UNIQUE NOT NULL,
+      teacher_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      -- Tên hiển thị chép lại, để khoá vẫn đứng tên đúng người kể cả khi tài
+      -- khoản giáo viên bị xoá.
+      teacher_name TEXT NOT NULL,
+      name TEXT NOT NULL,
+      tagline TEXT NOT NULL DEFAULT '',
+      price INTEGER NOT NULL DEFAULT 0,
+      price_old INTEGER NOT NULL DEFAULT 0,
+      commission_percent INTEGER NOT NULL DEFAULT 50,
+      -- Ba ô nội dung nhập nhiều dòng, mỗi dòng một ý.
+      ket_qua TEXT NOT NULL DEFAULT '',
+      noi_dung TEXT NOT NULL DEFAULT '',
+      danh_cho TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft'
+        CHECK(status IN ('draft','pending','published','hidden')),
+      -- Lý do quản trị trả lại, để giáo viên biết đường sửa.
+      reject_note TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      published_at TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_courses_teacher ON courses(teacher_id);
+    CREATE INDEX IF NOT EXISTS idx_courses_status ON courses(status);
+
+    -- Từng bài trong khoá của giáo viên.
+    CREATE TABLE IF NOT EXISTS course_lessons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      course_id INTEGER NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+      position INTEGER NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      /* Link YouTube hoặc file video. Rỗng nghĩa là chưa quay xong. */
+      video TEXT,
+      /* Bài cho xem thử ngay trên trang bán, chưa mua cũng xem được. */
+      free_preview INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_course_lessons ON course_lessons(course_id, position);
+
     -- Đơn mua khoá học quay sẵn có thu tiền (khoá đệm hát 28 bài vẫn miễn phí,
     -- không đi qua bảng này).
     --
@@ -260,6 +310,40 @@ function migrate() {
 
     CREATE INDEX IF NOT EXISTS idx_course_orders_moi ON course_orders(status, id);
     CREATE INDEX IF NOT EXISTS idx_course_orders_teacher ON course_orders(teacher_id, status);
+
+    -- Ví của học viên. Là sổ ghi từng lần cộng trừ chứ không phải một ô số dư:
+    -- số dư = tổng các dòng. Cách này lúc lệch tiền còn lần ra được vì sao,
+    -- chứ một ô số dư thì sửa xong không ai biết đường nào mà tra.
+    CREATE TABLE IF NOT EXISTS wallet_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      /* Dương là cộng vào ví, âm là trừ ra. */
+      amount INTEGER NOT NULL,
+      kind TEXT NOT NULL CHECK(kind IN ('topup','purchase','refund','adjust')),
+      note TEXT,
+      course_order_id INTEGER REFERENCES course_orders(id) ON DELETE SET NULL,
+      created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_wallet_user ON wallet_entries(user_id, id);
+
+    -- Học viên xin nạp tiền. Chưa có cổng thanh toán nên tiền vào ví chỉ khi
+    -- quản trị xác nhận đã nhận được — chuyển khoản hay đưa tiền mặt tại quán.
+    CREATE TABLE IF NOT EXISTS wallet_topups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      amount INTEGER NOT NULL,
+      method TEXT NOT NULL CHECK(method IN ('transfer','cash')),
+      note TEXT,
+      status TEXT NOT NULL DEFAULT 'new' CHECK(status IN ('new','done','cancelled')),
+      entry_id INTEGER REFERENCES wallet_entries(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      handled_at TEXT,
+      handled_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_wallet_topups_moi ON wallet_topups(status, id);
 
     -- Ai được xem khoá nào. Tách khỏi course_orders vì còn cấp tay: học viên
     -- đang học lớp tại quán có thể được tặng khoá mà không có đơn nào.

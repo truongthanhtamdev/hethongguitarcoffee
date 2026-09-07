@@ -5,7 +5,6 @@ import { db } from "@/lib/db";
 import { getSession } from "@/lib/auth";
 import { assertRole } from "@/lib/guard";
 import { courseBySlug, hoaHongCuaKhoa } from "@/lib/courses";
-import { giaoVienCuaKhoa } from "@/lib/course-sales";
 
 export interface CourseOrderState {
   error?: string;
@@ -38,12 +37,13 @@ export async function datMuaKhoaHocAction(
   const loi = (m: string): CourseOrderState => ({ error: m, values: daNhap });
 
   const course = courseBySlug(slug);
-  if (!course || !course.active) return loi("Khoá học này hiện không mở đăng ký");
+  if (!course || course.status !== "published") {
+    return loi("Khoá học này hiện không mở đăng ký");
+  }
   if (!name) return loi("Bạn nhập giúp họ tên nhé");
   if (!phone) return loi("Số điện thoại chưa đúng. Ví dụ: 0912345678");
 
   const session = await getSession();
-  const teacher = giaoVienCuaKhoa(course);
 
   db.prepare(
     `INSERT INTO course_orders
@@ -59,8 +59,8 @@ export async function datMuaKhoaHocAction(
     phone,
     note: note || null,
     userId: session?.userId ?? null,
-    teacherId: teacher?.id ?? null,
-    percent: course.commissionPercent,
+    teacherId: course.teacher_id,
+    percent: course.commission_percent,
     amount: hoaHongCuaKhoa(course),
   });
 

@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/guard";
 import { khoaDaMua } from "@/lib/course-sales";
-import { activeCourses, tienVN } from "@/lib/courses";
+import { baiCuaKhoa, khoaDangBan, tienVN } from "@/lib/courses";
 import { Card, EmptyState, PageHeader } from "@/components/ui";
 import { IconGuitar } from "@/components/icons";
+import VideoPlayer from "@/components/video-player";
 
 export default async function StudentKhoaHocPage() {
   const session = await requireRole(["student"]);
   const daMua = khoaDaMua(session.userId);
   const daMuaSlugs = new Set(daMua.map((c) => c.slug));
-  const chuaMua = activeCourses().filter((c) => !daMuaSlugs.has(c.slug));
+  const chuaMua = khoaDangBan().filter((c) => !daMuaSlugs.has(c.slug));
 
   return (
     <div className="space-y-5">
@@ -28,37 +29,55 @@ export default async function StudentKhoaHocPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {daMua.map((c) => (
-            <Card key={c.slug}>
-              <p className="text-lg font-bold text-ink-900">{c.name}</p>
-              <p className="text-sm text-ink-500 mt-1">Giáo viên: {c.teacherName}</p>
-
-              {/* Video của khoá đang được dựng. Trong lúc chờ, học viên vẫn thấy
-                  rõ mình đã có quyền học và nhắn được cho giáo viên. */}
-              <div className="mt-4 rounded-xl border border-navy-100 bg-ivory-50 p-4">
-                <p className="font-semibold text-ink-900">Bài giảng đang được đưa lên</p>
-                <p className="text-sm text-ink-600 mt-1">
-                  Khoá đã mở trong tài khoản của bạn. Bên mình đang đưa dần video lên, có bài mới
-                  là bạn xem được ngay tại đây.
+          {daMua.map((c) => {
+            const bai = baiCuaKhoa(c.id);
+            return (
+              <Card key={c.slug}>
+                <p className="text-lg font-bold text-ink-900">{c.name}</p>
+                <p className="text-sm text-ink-500 mt-1">
+                  Giáo viên: {c.teacher_name} · {bai.length} bài
                 </p>
+
+                {bai.length === 0 ? (
+                  <div className="mt-4 rounded-xl border border-navy-100 bg-ivory-50 p-4">
+                    <p className="font-semibold text-ink-900">Bài giảng đang được đưa lên</p>
+                    <p className="text-sm text-ink-600 mt-1">
+                      Khoá đã mở trong tài khoản của bạn. Có bài mới là bạn xem được ngay tại đây.
+                    </p>
+                  </div>
+                ) : (
+                  <ol className="mt-4 space-y-5">
+                    {bai.map((b, i) => (
+                      <li key={b.id}>
+                        <p className="font-semibold text-ink-900">
+                          <span className="text-ink-400 tabular">Bài {i + 1}.</span> {b.title}
+                        </p>
+                        {b.description && (
+                          <p className="text-sm text-ink-600 mt-0.5">{b.description}</p>
+                        )}
+                        <div className="mt-2">
+                          {b.video ? (
+                            <VideoPlayer url={b.video} title={b.title} />
+                          ) : (
+                            <p className="text-sm text-ink-400 rounded-xl border border-navy-100 bg-ivory-50 px-3 py-2.5">
+                              Video bài này đang được quay.
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
                 <Link
                   href="/student/messages"
-                  className="inline-block mt-3 font-semibold text-wood-600"
+                  className="inline-block mt-4 font-semibold text-wood-600"
                 >
-                  Nhắn cho giáo viên →
+                  Bí chỗ nào thì nhắn cho giáo viên →
                 </Link>
-              </div>
-
-              <ul className="mt-4 space-y-1.5 text-sm text-ink-700">
-                {c.noiDung.map((n) => (
-                  <li key={n} className="flex gap-2">
-                    <span className="text-ink-400">•</span>
-                    {n}
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
 

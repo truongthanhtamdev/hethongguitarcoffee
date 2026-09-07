@@ -38,12 +38,18 @@ function overdueTodayCount(): number {
 }
 
 /** Số khách đang chờ được cấp lại mật khẩu — cộng vào chuông cảnh báo. */
-/** Đơn mua khoá học chưa thu tiền — cộng vào chuông cảnh báo. */
-function pendingCourseOrderCount(): number {
-  const row = db
+/** Đơn mua khoá chưa thu tiền + khoá giáo viên gửi chờ duyệt. */
+function pendingCourseCount(): number {
+  const don = db
     .prepare("SELECT COUNT(*) AS c FROM course_orders WHERE status = 'new'")
     .get() as { c: number };
-  return row.c;
+  const khoa = db
+    .prepare("SELECT COUNT(*) AS c FROM courses WHERE status = 'pending'")
+    .get() as { c: number };
+  const nap = db
+    .prepare("SELECT COUNT(*) AS c FROM wallet_topups WHERE status = 'new'")
+    .get() as { c: number };
+  return don.c + khoa.c + nap.c;
 }
 
 function pendingResetCount(): number {
@@ -87,6 +93,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       : []),
     { href: "/admin/orders", label: "Đơn đặt đàn", icon: <IconPackage className={ICON} /> },
     { href: "/admin/khoa-hoc", label: "Khoá học quay sẵn", icon: <IconGuitar className={ICON} /> },
+    { href: "/admin/vi", label: "Ví học viên", icon: <IconWallet className={ICON} /> },
     { href: "/admin/messages", label: "Tin nhắn", icon: <IconBell className={ICON} /> },
     { href: "/admin/quen-mat-khau", label: "Quên mật khẩu", icon: <IconKey className={ICON} /> },
     { href: "/admin/import", label: "Nhập dữ liệu", icon: <IconUpload className={ICON} /> },
@@ -112,7 +119,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       userName={session.name}
       roleLabel={session.role === "admin" ? "Quản trị viên" : "Giáo vụ"}
       links={links}
-      alertCount={overdueTodayCount() + countUnread(session.userId) + pendingResetCount() + pendingCourseOrderCount()}
+      alertCount={overdueTodayCount() + countUnread(session.userId) + pendingResetCount() + pendingCourseCount()}
     >
       {children}
     </AppShell>

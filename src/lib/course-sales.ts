@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { COURSES, courseBySlug, hoaHongCuaKhoa, type Course } from "./courses";
+import { courseBySlug, hoaHongCuaKhoa, type Course } from "./courses";
 
 export interface CourseOrderRow {
   id: number;
@@ -19,17 +19,6 @@ export interface CourseOrderRow {
   paid_at: string | null;
 }
 
-/**
- * Tài khoản giáo viên đứng khoá. Khoá khai báo bằng email nên khi chưa tạo tài
- * khoản cho giáo viên đó, hàm trả về undefined — đơn vẫn ghi hoa hồng, chỉ là
- * chưa gắn được vào ai.
- */
-export function giaoVienCuaKhoa(c: Course): { id: number; name: string } | undefined {
-  return db
-    .prepare("SELECT id, name FROM users WHERE email = ? AND role = 'teacher' AND active = 1")
-    .get(c.teacherEmail) as { id: number; name: string } | undefined;
-}
-
 export function coQuyenXem(userId: number, slug: string): boolean {
   const row = db
     .prepare("SELECT 1 FROM course_access WHERE user_id = ? AND course_slug = ?")
@@ -42,9 +31,7 @@ export function khoaDaMua(userId: number): Course[] {
   const slugs = db
     .prepare("SELECT course_slug FROM course_access WHERE user_id = ?")
     .all(userId) as { course_slug: string }[];
-  return slugs
-    .map((s) => courseBySlug(s.course_slug))
-    .filter((c): c is Course => !!c);
+  return slugs.map((s) => courseBySlug(s.course_slug)).filter((c): c is Course => !!c);
 }
 
 /** Đơn học viên này đã gửi nhưng chưa thu tiền xong — để khỏi mời mua lại. */
@@ -94,9 +81,12 @@ export function tongKetHoaHong(teacherId: number): HoaHongTongKet {
   };
 }
 
-/** Khoá do giáo viên này đứng lớp — để hiện ở trang hoa hồng của họ. */
-export function khoaCuaGiaoVien(teacherId: number): Course[] {
-  return COURSES.filter((c) => giaoVienCuaKhoa(c)?.id === teacherId);
+/** Số lượt đã bán của một khoá — hiện cho giáo viên trong danh sách khoá. */
+export function soLuotDaBan(slug: string): number {
+  const r = db
+    .prepare("SELECT COUNT(*) AS c FROM course_orders WHERE course_slug = ? AND status = 'paid'")
+    .get(slug) as { c: number };
+  return r.c;
 }
 
 export { hoaHongCuaKhoa };

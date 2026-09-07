@@ -1,28 +1,24 @@
 import { requireRole } from "@/lib/guard";
-import {
-  khoaCuaGiaoVien,
-  listCourseOrdersForTeacher,
-  tongKetHoaHong,
-} from "@/lib/course-sales";
-import { hoaHongCuaKhoa, tienVN } from "@/lib/courses";
+import { listCourseOrdersForTeacher, tongKetHoaHong } from "@/lib/course-sales";
+import { hoaHongCuaKhoa, khoaCuaGiaoVien, tienVN } from "@/lib/courses";
 import { Card, EmptyState, PageHeader, StatusChip, TableShell, Th } from "@/components/ui";
 import { IconWallet } from "@/components/icons";
 
 export default async function TeacherHoaHongPage() {
   const session = await requireRole(["teacher"]);
-  const khoa = khoaCuaGiaoVien(session.userId);
+  const khoa = khoaCuaGiaoVien(session.userId).filter((c) => c.status === "published");
   const orders = listCourseOrdersForTeacher(session.userId).filter((o) => o.status === "paid");
   const tk = tongKetHoaHong(session.userId);
 
   if (khoa.length === 0 && orders.length === 0) {
     return (
       <div className="space-y-5">
-        <PageHeader title="Bán khoá học" subtitle="Hoa hồng từ khoá học quay sẵn bạn đứng lớp." />
+        <PageHeader title="Doanh thu khoá học" subtitle="Tiền bạn nhận được từ các khoá quay sẵn bạn tự soạn." />
         <Card padded={false}>
           <EmptyState
             icon={<IconWallet className="w-6 h-6" />}
-            title="Bạn chưa đứng khoá học nào"
-            description="Khi trung tâm gắn bạn vào một khoá học quay sẵn, doanh số và hoa hồng của khoá đó sẽ hiện tại đây."
+            title="Bạn chưa có khoá nào đang bán"
+            description="Soạn khoá ở mục Khoá học của tôi rồi gửi duyệt. Khoá lên trang bán là doanh số hiện ở đây."
           />
         </Card>
       </div>
@@ -32,8 +28,8 @@ export default async function TeacherHoaHongPage() {
   return (
     <div className="space-y-5">
       <PageHeader
-        title="Bán khoá học"
-        subtitle="Mỗi lượt khách mua khoá bạn đứng lớp, bạn được hưởng phần trăm đã thoả thuận."
+        title="Doanh thu khoá học"
+        subtitle="Mỗi lượt khách mua khoá bạn soạn, bạn được hưởng phần trăm đã thoả thuận."
       />
 
       <div className="grid sm:grid-cols-3 gap-4">
@@ -53,14 +49,14 @@ export default async function TeacherHoaHongPage() {
 
       {khoa.length > 0 && (
         <Card>
-          <p className="font-semibold text-ink-900">Khoá bạn đứng lớp</p>
+          <p className="font-semibold text-ink-900">Khoá bạn đang bán</p>
           <ul className="mt-3 space-y-2">
             {khoa.map((c) => (
               <li key={c.slug} className="text-sm border-b border-navy-100 last:border-0 pb-2 last:pb-0">
                 <p className="font-medium text-ink-900">{c.name}</p>
                 <p className="text-ink-500 mt-0.5">
                   Giá bán <b className="tabular text-ink-900">{tienVN(c.price)}</b> · bạn hưởng{" "}
-                  {c.commissionPercent}% ={" "}
+                  {c.commission_percent}% ={" "}
                   <b className="tabular text-wood-600">{tienVN(hoaHongCuaKhoa(c))}</b> mỗi lượt
                 </p>
               </li>
