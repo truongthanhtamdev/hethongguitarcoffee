@@ -6,7 +6,7 @@ import { GUITARS } from "@/lib/shop";
 import { khoaDangBan, tienVN } from "@/lib/courses";
 import { BRAND, BrandMark, PublicFooter, PublicHeader, prettyPhone } from "@/components/brand";
 
-/** Bốn dịch vụ của trung tâm. */
+/** Các dịch vụ của trung tâm. */
 const DICH_VU = [
   {
     ico: "☕",
@@ -25,6 +25,12 @@ const DICH_VU = [
     ten: "Kèm 1 kèm 1 online",
     mo: "Giáo viên kèm riêng, sửa lỗi chi tiết từng ngón tay, lộ trình theo đúng mục tiêu của bạn.",
     chi: ["Kèm riêng một người", "Sửa lỗi chi tiết", "Tiến bộ nhanh"],
+  },
+  {
+    ico: "🏠",
+    ten: "Kèm 1 kèm 1 tại nhà",
+    mo: "Giáo viên tới tận nhà bạn dạy. Không phải đi lại, giờ giấc theo lịch của bạn.",
+    chi: ["Học ngay tại nhà", "Kèm riêng một người", "Giờ giấc linh hoạt"],
   },
   {
     ico: "🎸",
@@ -103,13 +109,13 @@ export default async function TrangChu() {
         {/* Dịch vụ */}
         <section className="max-w-6xl mx-auto px-4 py-14">
           <h2 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight text-center">
-            Bốn cách để bắt đầu
+            Năm cách để bắt đầu
           </h2>
           <p className="text-ink-500 text-center mt-2">
             Phù hợp mọi nhu cầu, mọi lứa tuổi — chọn cách hợp với bạn nhất.
           </p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
             {DICH_VU.map((d) => (
               <div
                 key={d.ten}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { dangKyHocThuAction, type TrialState } from "@/actions/trial";
 import { BRAND, HINH_THUC_HOC, KHU_VUC, prettyPhone } from "@/components/brand";
 import { btn, field, label } from "@/components/ui";
@@ -22,7 +22,21 @@ export default function HocThuForm({
 }) {
   const [state, formAction, pending] = useActionState(dangKyHocThuAction, initialState);
   const v = state.values;
-  const [hinhThuc, setHinhThuc] = useState(v?.hinhThuc ?? HINH_THUC_HOC[0].id);
+  const [hinhThuc, setHinhThuc] = useState<string>(v?.hinhThuc ?? HINH_THUC_HOC[0].id);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // Tải lại trang là trình duyệt tự khôi phục lựa chọn cũ của các ô radio,
+  // nhưng React thì không biết nên vẫn giữ giá trị ban đầu — hậu quả là chấm
+  // radio nằm ở "1 kèm 1" mà khung tô sáng với ô chọn chi nhánh lại theo "học
+  // tại quán". Đọc lại đúng ô đang được chọn trong trang rồi đồng bộ về.
+  useEffect(() => {
+    const daChon = formRef.current?.querySelector<HTMLInputElement>(
+      'input[name="hinh_thuc"]:checked'
+    );
+    if (daChon && daChon.value !== hinhThuc) setHinhThuc(daChon.value);
+    // Chỉ chạy một lần lúc trang vừa dựng xong.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const canChiNhanh = HINH_THUC_HOC.find((h) => h.id === hinhThuc)?.canChiNhanh ?? false;
 
@@ -55,7 +69,7 @@ export default function HocThuForm({
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-4">
       <fieldset>
         <legend className={label}>Bạn muốn thử hình thức nào?</legend>
         <div className="space-y-2 mt-1">

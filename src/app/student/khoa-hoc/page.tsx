@@ -2,8 +2,8 @@ import Link from "next/link";
 import { requireRole } from "@/lib/guard";
 import { khoaDaMua } from "@/lib/course-sales";
 import { baiCuaKhoa, khoaDangBan, tienVN } from "@/lib/courses";
-import { Card, EmptyState, PageHeader } from "@/components/ui";
-import { IconGuitar } from "@/components/icons";
+import { Card, PageHeader, btn } from "@/components/ui";
+import { TOTAL_LESSONS } from "@/lib/curriculum";
 import VideoPlayer from "@/components/video-player";
 
 export default async function StudentKhoaHocPage() {
@@ -20,12 +20,29 @@ export default async function StudentKhoaHocPage() {
       />
 
       {daMua.length === 0 ? (
-        <Card padded={false}>
-          <EmptyState
-            icon={<IconGuitar className="w-6 h-6" />}
-            title="Bạn chưa mua khoá nâng cao nào"
-            description="Khoá đệm hát cơ bản 28 bài của bạn vẫn miễn phí và nằm ở mục Học guitar."
-          />
+        // Trang trống nhìn hụt hẫng, nên chỉ luôn lối đi tiếp: khoá miễn phí
+        // đang có và các khoá nâng cao đang bán.
+        <Card>
+          <p className="font-semibold text-ink-900">Bạn chưa mua khoá nâng cao nào</p>
+          <p className="text-sm text-ink-600 mt-1">
+            Khoá đệm hát cơ bản {TOTAL_LESSONS} bài của bạn vẫn miễn phí và nằm ở mục Học guitar.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Link
+              href="/student/learn"
+              className={`${btn.primary} px-4 py-2.5 text-sm no-underline`}
+            >
+              Học tiếp khoá miễn phí
+            </Link>
+            {chuaMua.length > 0 && (
+              <Link
+                href="/khoa-hoc"
+                className={`${btn.ghost} px-4 py-2.5 text-sm no-underline`}
+              >
+                Xem {chuaMua.length} khoá nâng cao
+              </Link>
+            )}
+          </div>
         </Card>
       ) : (
         <div className="space-y-4">

@@ -13,7 +13,7 @@ import {
 import { playChord } from "@/lib/guitar-audio";
 import { toggleLessonAction } from "@/actions/learning";
 import { btn } from "@/components/ui";
-import { IconCheck, IconCheckCircle, IconX } from "@/components/icons";
+import { IconCheck, IconCheckCircle, IconPlay, IconX } from "@/components/icons";
 
 export default function LessonList({ done }: { done: number[] }) {
   const [marks, setMarks] = useState<number[]>(done);
@@ -45,7 +45,7 @@ export default function LessonList({ done }: { done: number[] }) {
                 : "bg-white text-ink-500 border-navy-200 hover:bg-ivory-100"
             }`}
           >
-            {s.id === 0 ? "Tất cả" : `Chặng ${s.id} · ${s.tag}`}
+            {s.id === 0 ? "Tất cả" : `Chương ${s.id} · ${s.tag}`}
           </button>
         ))}
       </div>
@@ -54,10 +54,10 @@ export default function LessonList({ done }: { done: number[] }) {
         <section key={s.id}>
           <div className="flex items-baseline gap-2 mb-1 mt-5 first:mt-0">
             <h3 className="font-bold text-ink-900">
-              Chặng {s.id}: {s.name}
+              Chương {s.id}: {s.name}
             </h3>
             <span className="text-xs text-ink-400">
-              Buổi {s.from}-{s.to}
+              Bài {s.from}-{s.to}
             </span>
           </div>
           <p className="text-sm text-ink-500 mb-3">{s.note}</p>
@@ -88,6 +88,12 @@ export default function LessonList({ done }: { done: number[] }) {
                     <span className="min-w-0 flex-1">
                       <span className="block font-semibold text-ink-900 text-sm">{l.title}</span>
                       <span className="block text-xs text-ink-500 truncate">{l.desc}</span>
+                      {l.video && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-wood-600 mt-1">
+                          <IconPlay className="w-3 h-3" />
+                          Có video
+                        </span>
+                      )}
                     </span>
                     <span
                       className={`shrink-0 text-[11px] font-semibold rounded-full px-2.5 py-1 ${
@@ -145,7 +151,7 @@ function LessonSheet({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-wider text-ink-400 font-semibold">
-              Buổi {String(lesson.n).padStart(2, "0")}
+              Bài {String(lesson.n).padStart(2, "0")}
             </p>
             <h2 className="text-xl font-bold text-ink-900">{lesson.title}</h2>
           </div>

@@ -13,10 +13,10 @@ export default async function StudentLearnPage() {
     <div className="space-y-5">
       <section className="rounded-2xl bg-navy-950 text-white px-5 py-6 sm:px-7">
         <p className="text-xs uppercase tracking-wider text-navy-300 font-semibold">
-          Buổi kế tiếp · Chặng {state.stage.id} · {state.stage.tag}
+          Bài kế tiếp · Chương {state.stage.id} · {state.stage.tag}
         </p>
         <h1 className="text-2xl font-bold tracking-tight mt-1.5">
-          Buổi {String(state.next.n).padStart(2, "0")} — {state.next.title}
+          Bài {String(state.next.n).padStart(2, "0")} — {state.next.title}
         </h1>
         <p className="text-navy-200 text-sm mt-1">{state.next.desc}</p>
 
@@ -41,7 +41,7 @@ export default async function StudentLearnPage() {
       <div className="grid grid-cols-3 gap-3">
         <Card>
           <p className="text-2xl font-bold text-ink-900 tabular">{state.completedCount}</p>
-          <p className="text-xs text-ink-400 mt-0.5">buổi đã xong</p>
+          <p className="text-xs text-ink-400 mt-0.5">bài đã xong</p>
         </Card>
         <Card>
           <p className="text-2xl font-bold text-ink-900 tabular">{state.chords.length}</p>

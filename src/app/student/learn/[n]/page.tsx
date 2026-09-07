@@ -151,7 +151,7 @@ export default async function LessonDetailPage({
           >
             <span className="flex items-center gap-1 text-xs font-semibold text-ink-400">
               <IconChevronLeft className="w-3.5 h-3.5" />
-              Buổi {String(prev.n).padStart(2, "0")}
+              Bài {String(prev.n).padStart(2, "0")}
             </span>
             <span className="block text-sm font-semibold text-ink-900 mt-0.5">{prev.title}</span>
           </Link>
@@ -165,7 +165,7 @@ export default async function LessonDetailPage({
             className="flex-1 rounded-2xl border border-navy-100 bg-white p-4 text-right hover:shadow-sm transition"
           >
             <span className="flex items-center justify-end gap-1 text-xs font-semibold text-ink-400">
-              Buổi {String(next.n).padStart(2, "0")}
+              Bài {String(next.n).padStart(2, "0")}
               <IconChevronRight className="w-3.5 h-3.5" />
             </span>
             <span className="block text-sm font-semibold text-ink-900 mt-0.5">{next.title}</span>

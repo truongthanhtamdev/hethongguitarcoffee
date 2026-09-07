@@ -161,6 +161,12 @@ export const IconFilter = (p: IconProps) => (
   </Svg>
 );
 
+export const IconPlay = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M7 4.5v15l12-7.5z" />
+  </Svg>
+);
+
 export const IconChevronRight = (p: IconProps) => (
   <Svg {...p}>
     <path d="m9 5 7 7-7 7" />

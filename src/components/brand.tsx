@@ -41,6 +41,12 @@ export const HINH_THUC_HOC = [
     mo: "Giáo viên kèm riêng mình bạn, sửa lỗi tới từng ngón tay.",
     canChiNhanh: false,
   },
+  {
+    id: "tainha_1v1",
+    ten: "Kèm 1 kèm 1 tại nhà",
+    mo: "Giáo viên tới tận nhà bạn dạy, khỏi đi lại.",
+    canChiNhanh: false,
+  },
 ] as const;
 
 export function tenHinhThuc(id: string): string {
