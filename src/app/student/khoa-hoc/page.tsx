@@ -1,48 +1,39 @@
 import Link from "next/link";
 import { requireRole } from "@/lib/guard";
 import { khoaDaMua } from "@/lib/course-sales";
-import { baiCuaKhoa, khoaDangBan, tienVN } from "@/lib/courses";
+import { baiCuaKhoa, demBai, khoaDangBan, tienVN } from "@/lib/courses";
+import { goiDangBan } from "@/lib/packages";
 import { Card, PageHeader, btn } from "@/components/ui";
 import { TOTAL_LESSONS } from "@/lib/curriculum";
 import VideoPlayer from "@/components/video-player";
+import TheGoiLop from "@/components/the-goi-lop";
 
 export default async function StudentKhoaHocPage() {
   const session = await requireRole(["student"]);
   const daMua = khoaDaMua(session.userId);
   const daMuaSlugs = new Set(daMua.map((c) => c.slug));
   const chuaMua = khoaDangBan().filter((c) => !daMuaSlugs.has(c.slug));
+  const goi = goiDangBan();
 
   return (
     <div className="space-y-5">
       <PageHeader
         title="Khoá học của tôi"
-        subtitle="Các khoá nâng cao bạn đã mua. Khoá đệm hát cơ bản 28 bài nằm ở mục Học guitar."
+        subtitle={`Khoá nâng cao bạn đã mua, cùng các khoá và lớp đang mở. Khoá đệm hát cơ bản ${TOTAL_LESSONS} bài nằm ở mục Học guitar.`}
       />
 
       {daMua.length === 0 ? (
-        // Trang trống nhìn hụt hẫng, nên chỉ luôn lối đi tiếp: khoá miễn phí
-        // đang có và các khoá nâng cao đang bán.
         <Card>
           <p className="font-semibold text-ink-900">Bạn chưa mua khoá nâng cao nào</p>
           <p className="text-sm text-ink-600 mt-1">
             Khoá đệm hát cơ bản {TOTAL_LESSONS} bài của bạn vẫn miễn phí và nằm ở mục Học guitar.
           </p>
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Link
-              href="/student/learn"
-              className={`${btn.primary} px-4 py-2.5 text-sm no-underline`}
-            >
-              Học tiếp khoá miễn phí
-            </Link>
-            {chuaMua.length > 0 && (
-              <Link
-                href="/khoa-hoc"
-                className={`${btn.ghost} px-4 py-2.5 text-sm no-underline`}
-              >
-                Xem {chuaMua.length} khoá nâng cao
-              </Link>
-            )}
-          </div>
+          <Link
+            href="/student/learn"
+            className={`${btn.primary} inline-block px-4 py-2.5 text-sm no-underline mt-4`}
+          >
+            Học tiếp khoá miễn phí
+          </Link>
         </Card>
       ) : (
         <div className="space-y-4">
@@ -99,20 +90,52 @@ export default async function StudentKhoaHocPage() {
       )}
 
       {chuaMua.length > 0 && (
-        <Card>
-          <p className="font-semibold text-ink-900">Khoá nâng cao khác</p>
-          <ul className="mt-3 space-y-3">
+        <section>
+          <h2 className="font-bold text-ink-900 text-lg">Khoá nâng cao quay sẵn</h2>
+          <p className="text-sm text-ink-500 mt-0.5 mb-3">
+            Học lúc nào cũng được, xem lại bao nhiêu lần cũng được.
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-4">
             {chuaMua.map((c) => (
-              <li key={c.slug} className="border-b border-navy-100 last:border-0 pb-3 last:pb-0">
-                <Link href={`/khoa-hoc/${c.slug}`} className="font-medium text-ink-900">
-                  {c.name}
+              <li key={c.slug}>
+                <Link
+                  href={`/khoa-hoc/${c.slug}`}
+                  className="flex flex-col h-full rounded-2xl border border-navy-100 bg-white p-5 hover:shadow-md transition no-underline"
+                >
+                  <h3 className="font-bold text-ink-900 leading-snug">{c.name}</h3>
+                  <p className="text-sm text-ink-500 mt-1.5 flex-1">{c.tagline}</p>
+                  <p className="text-sm text-ink-500 mt-2">
+                    {c.teacher_name} · {demBai(c.id)} bài
+                  </p>
+                  <p
+                    className={`font-bold mt-1 tabular ${
+                      c.price > 0 ? "text-wood-600 text-xl" : "text-ink-500 text-base"
+                    }`}
+                  >
+                    {c.price > 0 ? tienVN(c.price) : "Liên hệ báo giá"}
+                  </p>
                 </Link>
-                <p className="text-sm text-ink-500 mt-0.5">{c.tagline}</p>
-                <p className="text-wood-600 font-bold tabular mt-1">{tienVN(c.price)}</p>
               </li>
             ))}
           </ul>
-        </Card>
+        </section>
+      )}
+
+      {goi.length > 0 && (
+        <section>
+          <h2 className="font-bold text-ink-900 text-lg">Lớp có giáo viên kèm</h2>
+          <p className="text-sm text-ink-500 mt-0.5 mb-3">
+            Video quay sẵn thì tiện, nhưng không ai sửa tay cho bạn. Muốn chắc thì học với giáo
+            viên.
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-4">
+            {goi.map((g) => (
+              <li key={g.slug}>
+                <TheGoiLop goi={g} href={`/student/lop-hoc/${g.slug}`} />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

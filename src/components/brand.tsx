@@ -85,6 +85,12 @@ export function PublicHeader() {
 
         <nav className="ml-auto flex items-center gap-0.5 sm:gap-2">
           <Link
+            href="/lop-hoc"
+            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
+          >
+            Lớp học
+          </Link>
+          <Link
             href="/khoa-hoc"
             className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
           >

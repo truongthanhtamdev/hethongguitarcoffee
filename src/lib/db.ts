@@ -311,6 +311,53 @@ function migrate() {
     CREATE INDEX IF NOT EXISTS idx_course_orders_moi ON course_orders(status, id);
     CREATE INDEX IF NOT EXISTS idx_course_orders_teacher ON course_orders(teacher_id, status);
 
+    -- Gói lớp có giáo viên dạy trực tiếp: lớp nhóm tại quán, kèm 1-1 tại nhà,
+    -- online nhóm, online 1-1. Khác khoá quay sẵn ở chỗ bán suất học chứ không
+    -- bán video, nên không có bài giảng và không mở khoá trong tài khoản —
+    -- khách đăng ký, trung tâm gọi lại xếp lịch.
+    --
+    -- price = 0 nghĩa là chưa công bố giá: trang hiện "Liên hệ báo giá".
+    CREATE TABLE IF NOT EXISTS class_packages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      /* Khớp id trong HINH_THUC_HOC: quan | online_nhom | online_1v1 | tainha_1v1 */
+      hinh_thuc TEXT NOT NULL,
+      tagline TEXT NOT NULL DEFAULT '',
+      so_buoi INTEGER NOT NULL DEFAULT 0,
+      phut_moi_buoi INTEGER NOT NULL DEFAULT 60,
+      price INTEGER NOT NULL DEFAULT 0,
+      price_old INTEGER NOT NULL DEFAULT 0,
+      /* Mỗi dòng một ý */
+      quyen_loi TEXT NOT NULL DEFAULT '',
+      danh_cho TEXT NOT NULL DEFAULT '',
+      active INTEGER NOT NULL DEFAULT 1,
+      position INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_class_packages ON class_packages(active, position);
+
+    -- Khách đăng ký một gói lớp. Giống đơn đặt đàn: trung tâm gọi lại thu tiền
+    -- và xếp lịch, không thu tiền trên web.
+    CREATE TABLE IF NOT EXISTS package_orders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      package_slug TEXT NOT NULL,
+      package_name TEXT NOT NULL,
+      price INTEGER NOT NULL DEFAULT 0,
+      customer_name TEXT NOT NULL,
+      customer_phone TEXT NOT NULL,
+      note TEXT,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      status TEXT NOT NULL DEFAULT 'new'
+        CHECK(status IN ('new','contacted','done','cancelled')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      handled_at TEXT,
+      handled_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_package_orders_moi ON package_orders(status, id);
+
     -- Đăng ký học thử. Khách vãng lai lẫn học viên đã có tài khoản đều gửi
     -- được, nên user_id để rỗng cũng không sao — cái cần là số điện thoại để
     -- gọi lại xếp lịch.
@@ -421,8 +468,16 @@ function migrate() {
   // thêm chi nhánh ở đâu.
   ensureColumn("users", "branch", "TEXT");
   ensureColumn("users", "area", "TEXT");
+  // Gói lớp: lịch học cố định, bảng giá nhiều mức (tháng / 3 tháng...) và ghi
+  // chú riêng. Bảng giá mỗi dòng một mức: "Nhãn | số tiền".
+  ensureColumn("class_packages", "lich_hoc", "TEXT NOT NULL DEFAULT ''");
+  ensureColumn("class_packages", "bang_gia", "TEXT NOT NULL DEFAULT ''");
+  ensureColumn("class_packages", "ghi_chu", "TEXT NOT NULL DEFAULT ''");
   migratePackagesToTable();
   invertAvailabilityToBusyOnce();
+  seedClassPackagesOnce();
+  seedCoursesOnce();
+  seedGiaLopNhomOnce();
 }
 
 // Packages used to live as two columns directly on `classes`
@@ -541,6 +596,186 @@ function ensureStudentRoleSupported() {
     const code = (err as { code?: string }).code;
     if (code !== "SQLITE_BUSY") throw err;
   }
+}
+
+/**
+ * Bốn gói lớp của trung tâm, tạo sẵn để trang không trống lúc mới cài. Giá để
+ * 0 nghĩa là chưa công bố — trang hiện "Liên hệ báo giá", quản trị vào điền
+ * sau. Chạy đúng một lần: đã điền giá rồi thì lần khởi động sau không ghi đè.
+ */
+function seedClassPackagesOnce() {
+  const name = "seed_class_packages_v1";
+  if (db.prepare("SELECT 1 FROM schema_migrations WHERE name = ?").get(name)) return;
+
+  const goi = [
+    {
+      slug: "lop-nhom-tai-quan",
+      name: "Lớp nhóm tại quán cà phê",
+      hinh_thuc: "quan",
+      tagline: "Học cùng nhóm ngay tại quán, có giáo viên kèm trực tiếp từng buổi.",
+      so_buoi: 12,
+      phut: 90,
+      quyen_loi:
+        "Giáo viên sửa tay ngay tại chỗ, không phải đoán qua màn hình\nHọc cùng nhóm nên có bạn tập chung, đỡ nản\nMượn đàn tại quán, chưa mua đàn vẫn học được\nĐược mời tham gia đêm nhạc acoustic của quán",
+      danh_cho: "Bạn ở gần chi nhánh và thích không khí học cùng người khác.",
+    },
+    {
+      slug: "kem-1-1-tai-nha",
+      name: "Kèm 1 kèm 1 tại nhà",
+      hinh_thuc: "tainha_1v1",
+      tagline: "Giáo viên tới tận nhà, giờ giấc theo lịch của bạn.",
+      so_buoi: 8,
+      phut: 60,
+      quyen_loi:
+        "Không phải đi lại, học ngay tại nhà mình\nGiáo viên kèm riêng, sửa tới từng ngón tay\nGiờ học linh hoạt, đổi lịch báo trước là được\nLộ trình riêng theo bài bạn muốn chơi",
+      danh_cho: "Bạn bận, ngại đi lại, hoặc muốn học riêng cho nhanh tiến bộ.",
+    },
+    {
+      slug: "online-1-1",
+      name: "Kèm 1 kèm 1 online",
+      hinh_thuc: "online_1v1",
+      tagline: "Học qua video call, giáo viên kèm riêng mình bạn.",
+      so_buoi: 8,
+      phut: 60,
+      quyen_loi:
+        "Ở tỉnh nào cũng học được\nGiáo viên kèm riêng, sửa lỗi chi tiết\nGhi hình lại buổi học để xem lại\nHọc phí nhẹ hơn kèm tại nhà",
+      danh_cho: "Bạn ở xa chi nhánh nhưng vẫn muốn có người kèm riêng.",
+    },
+    {
+      slug: "online-nhom",
+      name: "Lớp online theo nhóm",
+      hinh_thuc: "online_nhom",
+      tagline: "Học nhóm qua video call, giờ giấc linh hoạt, chi phí nhẹ nhất.",
+      so_buoi: 12,
+      phut: 90,
+      quyen_loi:
+        "Chi phí nhẹ nhất trong các hình thức có giáo viên\nHọc cùng nhóm, có bạn tập chung\nKhông phải đi lại\nNhắn hỏi giáo viên giữa các buổi",
+      danh_cho: "Bạn muốn có giáo viên kèm nhưng chưa muốn đóng nhiều.",
+    },
+  ];
+
+  const run = db.transaction(() => {
+    const insert = db.prepare(
+      `INSERT INTO class_packages
+         (slug, name, hinh_thuc, tagline, so_buoi, phut_moi_buoi, quyen_loi, danh_cho, position)
+       VALUES (@slug, @name, @hinh_thuc, @tagline, @so_buoi, @phut, @quyen_loi, @danh_cho, @pos)
+       ON CONFLICT(slug) DO NOTHING`
+    );
+    goi.forEach((g, i) => insert.run({ ...g, pos: i + 1 }));
+    db.prepare("INSERT INTO schema_migrations (name) VALUES (?)").run(name);
+  });
+  run();
+}
+
+/**
+ * Học phí và lịch học thật của lớp nhóm tại quán. Chỉ điền khi gói còn để giá
+ * 0 (chưa ai đụng vào) — quản trị sửa giá rồi thì lần khởi động sau không ghi
+ * đè lên.
+ */
+function seedGiaLopNhomOnce() {
+  const name = "gia_lop_nhom_v1";
+  if (db.prepare("SELECT 1 FROM schema_migrations WHERE name = ?").get(name)) return;
+
+  const run = db.transaction(() => {
+    db.prepare(
+      `UPDATE class_packages
+          SET price = 1500000,
+              lich_hoc = @lich,
+              bang_gia = @gia,
+              ghi_chu = @ghiChu
+        WHERE slug = 'lop-nhom-tai-quan' AND price = 0`
+    ).run({
+      lich: "Thứ 2 - 4 - 6, 19h30 đến 21h",
+      gia: ["1 tháng|1500000", "3 tháng|3500000"].join("\n"),
+      ghiChu:
+        "Hiện dạy tại chi nhánh Đô Đốc Thủ, Tân Phú. Quận nào gom đủ 2-3 học viên đăng ký là bên mình mở thêm điểm học ở đó.",
+    });
+    db.prepare("INSERT INTO schema_migrations (name) VALUES (?)").run(name);
+  });
+  run();
+}
+
+/**
+ * Hai khoá nâng cao của trung tâm, tạo sẵn để trang bán không trống lúc mới
+ * cài. Giá để 0 nghĩa là chưa công bố — trang hiện "Liên hệ báo giá".
+ *
+ * teacher_id để rỗng vì lúc cài chưa chắc đã có tài khoản giáo viên; quản trị
+ * vào mục Khoá học quay sẵn gán giáo viên sau, gán xong thì các lượt bán tiếp
+ * theo mới tính hoa hồng cho người đó.
+ *
+ * Chạy đúng một lần: giáo viên sửa nội dung rồi thì lần khởi động sau không
+ * ghi đè.
+ */
+function seedCoursesOnce() {
+  const name = "seed_courses_v1";
+  if (db.prepare("SELECT 1 FROM schema_migrations WHERE name = ?").get(name)) return;
+
+  const khoa = [
+    {
+      slug: "fingerpicking",
+      name: "Fingerpicking — chơi giai điệu bằng ngón",
+      tagline:
+        "Từ đệm hát bằng phím gảy sang chơi bằng ngón: rải, móc, và chơi trọn bài không cần hát.",
+      ket_qua: [
+        "Móc dây bằng ngón cái, trỏ, giữa, áp út đều tiếng và không vấp",
+        "Rải hợp âm theo nhiều mẫu ngón khác nhau cho cùng một bài",
+        "Vừa giữ bè trầm bằng ngón cái vừa chơi giai điệu ở dây trên",
+        "Chơi trọn vẹn một bài fingerstyle không cần hát",
+      ],
+      noi_dung: [
+        "Tư thế tay phải, để móng và cách lấy tiếng sạch",
+        "Các mẫu rải cơ bản p-i-m-a và biến thể",
+        "Bè trầm luân phiên (alternating bass)",
+        "Ghép giai điệu vào nền hợp âm",
+        "Hammer-on, pull-off, slide, harmonic",
+        "Tập trọn bài theo từng câu, có tốc độ chậm để tập theo",
+      ],
+      danh_cho:
+        "Bạn đã đệm hát được vài bài bằng phím gảy, chuyển hợp âm tương đối mượt và muốn chơi đàn một mình mà vẫn ra bài.",
+    },
+    {
+      slug: "dem-hat-nang-cao",
+      name: "Đệm hát nâng cao",
+      tagline: "Ra khỏi 8 điệu cơ bản: đổi tông, chặn dây, intro và các cú chạy nối câu.",
+      ket_qua: [
+        "Đệm được bài lạ chỉ cần nghe qua một lần",
+        "Chặn dây không bị rè, đổi tông thoải mái",
+        "Tự nghĩ được intro và câu nối giữa các đoạn",
+        "Đệm theo cảm xúc bài chứ không rập khuôn một điệu",
+      ],
+      noi_dung: [
+        "Hợp âm chặn và cách bấm không đau tay",
+        "Vòng hoà thanh thường gặp và cách đoán hợp âm bài mới",
+        "Đổi tông cho hợp giọng người hát",
+        "Intro, outro và câu nối",
+        "Biến tấu điệu: thêm nghịch phách, ngắt tiếng",
+        "Đệm cho người khác hát",
+      ],
+      danh_cho:
+        "Bạn đã học xong khoá đệm hát cơ bản, đệm được vài bài quen nhưng gặp bài lạ là bí.",
+    },
+  ];
+
+  const run = db.transaction(() => {
+    const insert = db.prepare(
+      `INSERT INTO courses (slug, teacher_id, teacher_name, name, tagline, ket_qua, noi_dung, danh_cho, status, published_at)
+       VALUES (@slug, NULL, @teacher, @name, @tagline, @ketQua, @noiDung, @danhCho, 'published', datetime('now'))
+       ON CONFLICT(slug) DO NOTHING`
+    );
+    for (const k of khoa) {
+      insert.run({
+        slug: k.slug,
+        teacher: "Giáo viên trung tâm",
+        name: k.name,
+        tagline: k.tagline,
+        ketQua: k.ket_qua.join("\n"),
+        noiDung: k.noi_dung.join("\n"),
+        danhCho: k.danh_cho,
+      });
+    }
+    db.prepare("INSERT INTO schema_migrations (name) VALUES (?)").run(name);
+  });
+  run();
 }
 
 function seedInner() {
