@@ -20,8 +20,11 @@ services:
       # sinh mot chuoi ngau nhien va in ra log (docker compose logs app).
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@guitarcafe.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      # Caddy đã lo HTTPS nên cookie phiên đăng nhập bật secure được.
-      COOKIE_SECURE: "true"
+      # Cookie phiên đăng nhập đánh dấu secure thì trình duyệt chỉ gửi lại qua
+      # https. Chạy https (Caddy có chứng chỉ) thì để true. Còn chạy http trần
+      # mà để true là đăng nhập xong bấm sang trang nào cũng thành chưa đăng
+      # nhập — lúc đó đặt COOKIE_SECURE=false trong .env.
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
       DATA_DIR: /data
     volumes:
       # Toàn bộ dữ liệu thật nằm trong volume này — sao lưu nghĩa là sao lưu nó.
