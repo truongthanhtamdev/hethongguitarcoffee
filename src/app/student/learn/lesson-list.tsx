@@ -14,6 +14,7 @@ import { playChord } from "@/lib/guitar-audio";
 import { toggleLessonAction } from "@/actions/learning";
 import { btn } from "@/components/ui";
 import { IconCheck, IconCheckCircle, IconPlay, IconX } from "@/components/icons";
+import VideoPlayer from "@/components/video-player";
 
 export default function LessonList({ done }: { done: number[] }) {
   const [marks, setMarks] = useState<number[]>(done);
@@ -161,6 +162,21 @@ function LessonSheet({
         </div>
 
         <p className="text-sm text-ink-500 mt-1">{lesson.desc}</p>
+
+        {/* Video là thứ học viên vào đây để xem, nên để ngay trên cùng thay vì
+            bắt bấm thêm một lần nữa sang trang bài học. */}
+        {lesson.video && (
+          <div className="mt-4">
+            <VideoPlayer url={lesson.video} title={lesson.title} />
+          </div>
+        )}
+
+        <Link
+          href={`/student/learn/${lesson.n}`}
+          className={`${btn.secondary} w-full mt-3 no-underline`}
+        >
+          Mở trang bài học đầy đủ →
+        </Link>
 
         <dl className="mt-4 divide-y divide-navy-100 border-y border-navy-100">
           <div className="flex gap-3 py-2.5">
