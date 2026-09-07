@@ -311,6 +311,33 @@ function migrate() {
     CREATE INDEX IF NOT EXISTS idx_course_orders_moi ON course_orders(status, id);
     CREATE INDEX IF NOT EXISTS idx_course_orders_teacher ON course_orders(teacher_id, status);
 
+    -- Đăng ký học thử. Khách vãng lai lẫn học viên đã có tài khoản đều gửi
+    -- được, nên user_id để rỗng cũng không sao — cái cần là số điện thoại để
+    -- gọi lại xếp lịch.
+    CREATE TABLE IF NOT EXISTS trial_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      /* Học tại quán, online theo nhóm, hay kèm 1 kèm 1 */
+      hinh_thuc TEXT NOT NULL,
+      /* Chi nhánh muốn tới, rỗng khi học online */
+      branch TEXT,
+      /* Khu vực đang ở — để biết nên mở quán tiếp ở đâu */
+      area TEXT,
+      /* Khung giờ khách rảnh, khách tự gõ */
+      thoi_gian TEXT,
+      note TEXT,
+      status TEXT NOT NULL DEFAULT 'new'
+        CHECK(status IN ('new','contacted','scheduled','done','cancelled')),
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      handled_at TEXT,
+      handled_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_trial_moi ON trial_requests(status, id);
+    CREATE INDEX IF NOT EXISTS idx_trial_user ON trial_requests(user_id, id);
+
     -- Ví của học viên. Là sổ ghi từng lần cộng trừ chứ không phải một ô số dư:
     -- số dư = tổng các dòng. Cách này lúc lệch tiền còn lần ra được vì sao,
     -- chứ một ô số dư thì sửa xong không ai biết đường nào mà tra.

@@ -21,6 +21,32 @@ export const NOI_HOC = [
   "Chưa có quán gần mình — mong mở thêm chi nhánh",
 ];
 
+/** Ba hình thức học, dùng chung cho form đăng ký học thử. */
+export const HINH_THUC_HOC = [
+  {
+    id: "quan",
+    ten: "Học tại quán cà phê",
+    mo: "Tới quán, có giáo viên kèm trực tiếp và bạn học cùng nhóm.",
+    canChiNhanh: true,
+  },
+  {
+    id: "online_nhom",
+    ten: "Học online theo nhóm",
+    mo: "Học qua video call cùng vài bạn nữa, không phải đi lại.",
+    canChiNhanh: false,
+  },
+  {
+    id: "online_1v1",
+    ten: "Kèm 1 kèm 1 online",
+    mo: "Giáo viên kèm riêng mình bạn, sửa lỗi tới từng ngón tay.",
+    canChiNhanh: false,
+  },
+] as const;
+
+export function tenHinhThuc(id: string): string {
+  return HINH_THUC_HOC.find((h) => h.id === id)?.ten ?? id;
+}
+
 /** Khu vực khách đang ở. Đây là dữ liệu để quyết định mở chi nhánh mới. */
 export const KHU_VUC = [
   "Tân Phú", "Tân Bình", "Bình Tân", "Gò Vấp", "Phú Nhuận", "Bình Thạnh",
@@ -71,7 +97,7 @@ export function PublicHeader() {
             Đăng nhập
           </Link>
           <Link
-            href="/register"
+            href="/hoc-thu"
             className="px-3 sm:px-3.5 py-2 rounded-xl text-sm font-semibold bg-wood-500 hover:bg-wood-600 text-white no-underline whitespace-nowrap"
           >
             <span className="sm:hidden">Học thử</span>

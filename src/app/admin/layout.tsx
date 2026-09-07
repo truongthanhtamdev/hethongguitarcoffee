@@ -49,7 +49,10 @@ function pendingCourseCount(): number {
   const nap = db
     .prepare("SELECT COUNT(*) AS c FROM wallet_topups WHERE status = 'new'")
     .get() as { c: number };
-  return don.c + khoa.c + nap.c;
+  const thu = db
+    .prepare("SELECT COUNT(*) AS c FROM trial_requests WHERE status = 'new'")
+    .get() as { c: number };
+  return don.c + khoa.c + nap.c + thu.c;
 }
 
 function pendingResetCount(): number {
@@ -91,6 +94,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           { href: "/admin/finance", label: "Doanh thu", icon: <IconChart className={ICON} /> },
         ]
       : []),
+    { href: "/admin/hoc-thu", label: "Đăng ký học thử", icon: <IconCalendarCheck className={ICON} /> },
     { href: "/admin/orders", label: "Đơn đặt đàn", icon: <IconPackage className={ICON} /> },
     { href: "/admin/khoa-hoc", label: "Khoá học quay sẵn", icon: <IconGuitar className={ICON} /> },
     { href: "/admin/vi", label: "Ví học viên", icon: <IconWallet className={ICON} /> },

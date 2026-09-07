@@ -1,0 +1,199 @@
+"use client";
+
+import { useActionState, useState } from "react";
+import { dangKyHocThuAction, type TrialState } from "@/actions/trial";
+import { BRAND, HINH_THUC_HOC, KHU_VUC, prettyPhone } from "@/components/brand";
+import { btn, field, label } from "@/components/ui";
+
+const initialState: TrialState = {};
+
+/**
+ * Form đăng ký học thử, dùng chung cho trang công khai và trang học viên.
+ * Học viên đã đăng nhập thì tên và số điện thoại điền sẵn.
+ */
+export default function HocThuForm({
+  tenSan = "",
+  sdtSan = "",
+  khuVucSan = "",
+}: {
+  tenSan?: string;
+  sdtSan?: string;
+  khuVucSan?: string;
+}) {
+  const [state, formAction, pending] = useActionState(dangKyHocThuAction, initialState);
+  const v = state.values;
+  const [hinhThuc, setHinhThuc] = useState(v?.hinhThuc ?? HINH_THUC_HOC[0].id);
+
+  const canChiNhanh = HINH_THUC_HOC.find((h) => h.id === hinhThuc)?.canChiNhanh ?? false;
+
+  if (state.ok) {
+    return (
+      <div className="rounded-2xl border border-mint-300 bg-mint-50 p-5">
+        <p className="font-bold text-mint-700 text-lg">Đã nhận đăng ký học thử</p>
+        <p className="text-ink-700 mt-1.5">
+          Bên mình sẽ gọi lại trong hôm nay để hẹn giờ buổi học thử. Buổi thử không mất phí, bạn
+          cũng chưa cần mang đàn — bên mình có đàn cho mượn.
+        </p>
+        <p className="text-sm text-ink-500 mt-3">
+          Cần gấp thì gọi{" "}
+          <a href={`tel:${BRAND.phone}`} className="font-semibold text-wood-600">
+            {prettyPhone()}
+          </a>{" "}
+          hoặc{" "}
+          <a
+            href={`https://m.me/${BRAND.fanpage}`}
+            target="_blank"
+            rel="noopener"
+            className="font-semibold text-wood-600"
+          >
+            nhắn fanpage
+          </a>
+          .
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <fieldset>
+        <legend className={label}>Bạn muốn thử hình thức nào?</legend>
+        <div className="space-y-2 mt-1">
+          {HINH_THUC_HOC.map((h) => (
+            <label
+              key={h.id}
+              className={`flex gap-3 rounded-xl border p-3.5 cursor-pointer transition ${
+                hinhThuc === h.id
+                  ? "border-wood-400 bg-wood-50"
+                  : "border-navy-200 hover:bg-ivory-50"
+              }`}
+            >
+              <input
+                type="radio"
+                name="hinh_thuc"
+                value={h.id}
+                checked={hinhThuc === h.id}
+                onChange={() => setHinhThuc(h.id)}
+                className="mt-1 shrink-0"
+              />
+              <span className="min-w-0">
+                <span className="block font-semibold text-ink-900">{h.ten}</span>
+                <span className="block text-sm text-ink-500 mt-0.5">{h.mo}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {canChiNhanh && (
+        <div>
+          <label className={label} htmlFor="ht-branch">
+            Chi nhánh bạn muốn tới
+          </label>
+          <select
+            id="ht-branch"
+            name="branch"
+            required
+            defaultValue={v?.branch ?? BRAND.branches[0]?.name ?? ""}
+            className={field}
+          >
+            {BRAND.branches.map((b) => (
+              <option key={b.name} value={b.name}>
+                {b.name} — {b.address}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className={label} htmlFor="ht-name">
+            Họ và tên
+          </label>
+          <input
+            id="ht-name"
+            name="name"
+            required
+            autoComplete="name"
+            defaultValue={v?.name ?? tenSan}
+            className={field}
+            placeholder="Nguyễn Văn A"
+          />
+        </div>
+        <div>
+          <label className={label} htmlFor="ht-phone">
+            Số điện thoại
+          </label>
+          <input
+            id="ht-phone"
+            name="phone"
+            type="tel"
+            required
+            autoComplete="tel"
+            defaultValue={v?.phone ?? sdtSan}
+            className={field}
+            placeholder="09xx xxx xxx"
+          />
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className={label} htmlFor="ht-area">
+            Khu vực bạn đang ở{" "}
+            <span className="font-normal text-ink-400">(không bắt buộc)</span>
+          </label>
+          <select id="ht-area" name="area" defaultValue={v?.area ?? khuVucSan} className={field}>
+            <option value="">— Chưa chọn —</option>
+            {KHU_VUC.map((k) => (
+              <option key={k} value={k}>
+                {k}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={label} htmlFor="ht-time">
+            Bạn rảnh giờ nào
+          </label>
+          <input
+            id="ht-time"
+            name="thoi_gian"
+            defaultValue={v?.thoiGian ?? ""}
+            className={field}
+            placeholder="Tối thứ 3, 5 sau 19h"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className={label} htmlFor="ht-note">
+          Ghi chú <span className="font-normal text-ink-400">(không bắt buộc)</span>
+        </label>
+        <textarea
+          id="ht-note"
+          name="note"
+          rows={2}
+          defaultValue={v?.note ?? ""}
+          className={field}
+          placeholder="Ví dụ: mình chưa cầm đàn bao giờ"
+        />
+      </div>
+
+      {state.error && (
+        <p className="text-sm text-coral-700 bg-coral-50 border border-coral-100 rounded-xl px-3 py-2">
+          {state.error}
+        </p>
+      )}
+
+      <button type="submit" disabled={pending} className={`${btn.primary} w-full py-3 text-base`}>
+        {pending ? "Đang gửi..." : "Đăng ký học thử miễn phí"}
+      </button>
+
+      <p className="text-xs text-ink-500 text-center">
+        Buổi thử không mất phí và không bắt buộc đăng ký khoá sau đó.
+      </p>
+    </form>
+  );
+}

@@ -23,8 +23,9 @@ export default async function StudentLayout({ children }: { children: React.Reac
     { href: "/student/vi", label: "Ví của tôi", icon: <IconWallet className="w-5 h-5" /> },
     { href: "/student/chords", label: "Hợp âm", icon: <IconMusic className="w-5 h-5" /> },
     { href: "/student/practice", label: "Luyện tập", icon: <IconMic className="w-5 h-5" /> },
+    { href: "/student/hoc-thu", label: "Đăng ký học thử", icon: <IconCalendarCheck className="w-5 h-5" /> },
     { href: "/student/messages", label: "Tin nhắn", icon: <IconBell className="w-5 h-5" /> },
-    { href: "/shop", label: "Mua đàn", icon: <IconPackage className="w-5 h-5" /> },
+    { href: "/student/shop", label: "Mua đàn", icon: <IconPackage className="w-5 h-5" /> },
   ];
 
   return (

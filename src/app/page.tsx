@@ -70,6 +70,12 @@ export default async function TrangChu() {
                 >
                   Nhận khoá học miễn phí
                 </Link>
+                <Link
+                  href="/hoc-thu"
+                  className="px-5 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white no-underline"
+                >
+                  Đăng ký học thử
+                </Link>
                 <a
                   href={`https://m.me/${BRAND.fanpage}`}
                   target="_blank"
@@ -122,6 +128,12 @@ export default async function TrangChu() {
                     </li>
                   ))}
                 </ul>
+                <Link
+                  href={d.ten === "Bán đàn" ? "/shop" : "/hoc-thu"}
+                  className="inline-block mt-4 font-semibold text-wood-600 text-sm"
+                >
+                  {d.ten === "Bán đàn" ? "Xem đàn →" : "Đăng ký học thử →"}
+                </Link>
               </div>
             ))}
           </div>
