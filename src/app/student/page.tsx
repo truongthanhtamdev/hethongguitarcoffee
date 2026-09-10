@@ -51,7 +51,7 @@ export default async function StudentHomePage() {
           <EmptyState
             icon={<IconMusic className="w-7 h-7" />}
             title="Chưa có lớp học nào gắn với tài khoản của bạn"
-            description="Bạn vẫn tự học được toàn bộ lộ trình ở trên. Muốn xem lịch học tại trung tâm, báo email đã đăng ký cho trung tâm để được gắn vào lớp."
+            description="Bạn vẫn tự học được toàn bộ lộ trình ở trên. Muốn xem lịch học tại quán, báo số điện thoại đã đăng ký cho bên mình để được gắn vào lớp."
           />
         </Card>
       ) : (

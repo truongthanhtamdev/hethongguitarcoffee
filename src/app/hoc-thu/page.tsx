@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { BRAND, PublicFooter, PublicHeader } from "@/components/brand";
+import { getSession, getUserById } from "@/lib/auth";
 import { TOTAL_LESSONS } from "@/lib/curriculum";
 import { IconCheckCircle } from "@/components/icons";
 import HocThuForm from "@/components/hoc-thu-form";
@@ -12,7 +12,12 @@ const AN_TAM = [
   "Chưa biết gì vẫn theo được, buổi đầu chỉ tập cầm đàn và bấm hợp âm",
 ];
 
-export default function HocThuPage() {
+export default async function HocThuPage() {
+  // Khách đang đăng nhập thì đã có tài khoản rồi: không hỏi mật khẩu nữa, và
+  // điền sẵn tên với số điện thoại cho đỡ phải gõ lại.
+  const session = await getSession();
+  const me = session ? getUserById(session.userId) : undefined;
+
   return (
     <div className="min-h-screen bg-ivory-50 flex flex-col">
       <PublicHeader />
@@ -36,9 +41,15 @@ export default function HocThuPage() {
           <div className="rounded-2xl border border-navy-100 bg-white p-5 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-20">
             <p className="font-bold text-ink-900 text-lg">Đăng ký học thử</p>
             <p className="text-sm text-ink-500 mt-0.5 mb-4">
-              Điền chưa tới một phút, bên mình gọi lại hẹn giờ.
+              Điền chưa tới một phút. Gửi xong là có luôn tài khoản để xem khoá {TOTAL_LESSONS}{" "}
+              bài video quay sẵn, bên mình gọi lại hẹn giờ buổi thử.
             </p>
-            <HocThuForm />
+            <HocThuForm
+              daDangNhap={!!me}
+              tenSan={me?.name ?? ""}
+              sdtSan={me?.phone ?? ""}
+              khuVucSan={me?.area ?? ""}
+            />
           </div>
 
           <div className="lg:col-start-1 lg:row-start-2">
@@ -61,11 +72,7 @@ export default function HocThuPage() {
                 </p>
               ))}
               <p className="text-sm text-ink-500 mt-3">
-                Chưa có quán gần nhà? Chọn học online, hoặc{" "}
-                <Link href="/register" className="font-semibold text-wood-600">
-                  đăng ký tài khoản
-                </Link>{" "}
-                để nhận miễn phí khoá {TOTAL_LESSONS} bài video quay sẵn.
+                Chưa có quán gần nhà? Chọn học online — bên mình vẫn dạy được.
               </p>
             </div>
           </div>

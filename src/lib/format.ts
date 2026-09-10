@@ -73,3 +73,35 @@ export function mostRecentOccurrence(dayOfWeek: number, from: Date = new Date())
   d.setDate(d.getDate() - diff);
   return d;
 }
+
+/**
+ * Số Việt Nam về một dạng duy nhất để so sánh và để lưu: bỏ khoảng trắng,
+ * dấu chấm, gạch ngang; "+84..." đổi thành "0...". Không hợp lệ thì trả "".
+ */
+export function chuanHoaSoDienThoai(raw: string): string {
+  const d = raw.replace(/[^0-9+]/g, "").replace(/^\+84/, "0");
+  return /^0\d{8,10}$/.test(d) ? d : "";
+}
+
+/**
+ * Khách đăng ký bằng số điện thoại thì không đưa email, nhưng cột email là
+ * UNIQUE NOT NULL và có 28 bảng khác tham chiếu users(id) — dựng lại bảng chỉ
+ * để bỏ NOT NULL là rủi ro không đáng trên dữ liệu thật. Thay vào đó chỗ trống
+ * được lấp bằng một địa chỉ đánh dấu sinh từ chính số điện thoại. Không nơi
+ * nào gửi thư tới nó, và mọi chỗ hiển thị đều lọc bằng emailHienThi().
+ */
+const MIEN_TAM = "@sdt.local";
+
+export function emailTheoSoDienThoai(phone: string): string {
+  return phone.replace(/[^0-9]/g, "") + MIEN_TAM;
+}
+
+/** Đúng là địa chỉ đánh dấu ở trên, không phải email thật của khách. */
+export function laEmailTam(email: string | null | undefined): boolean {
+  return !!email && email.toLowerCase().endsWith(MIEN_TAM);
+}
+
+/** Email để hiện ra màn hình — tài khoản chỉ có số điện thoại thì không hiện. */
+export function emailHienThi(email: string | null | undefined): string | null {
+  return !email || laEmailTam(email) ? null : email;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { dangKyHocThuAction, type TrialState } from "@/actions/trial";
 import { BRAND, HINH_THUC_HOC, KHU_VUC, prettyPhone } from "@/components/brand";
@@ -15,10 +16,13 @@ export default function HocThuForm({
   tenSan = "",
   sdtSan = "",
   khuVucSan = "",
+  daDangNhap = false,
 }: {
   tenSan?: string;
   sdtSan?: string;
   khuVucSan?: string;
+  /** Đã đăng nhập thì không hỏi mật khẩu nữa — tài khoản có sẵn rồi. */
+  daDangNhap?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(dangKyHocThuAction, initialState);
   const v = state.values;
@@ -48,6 +52,38 @@ export default function HocThuForm({
           Bên mình sẽ gọi lại trong hôm nay để hẹn giờ buổi học thử. Buổi thử không mất phí, bạn
           cũng chưa cần mang đàn — bên mình có đàn cho mượn.
         </p>
+
+        {state.taoTaiKhoan && (
+          <div className="mt-4 rounded-xl bg-white border border-mint-200 p-4">
+            <p className="font-semibold text-ink-900">Tài khoản của bạn đã tạo xong</p>
+            <p className="text-sm text-ink-600 mt-1">
+              Trong lúc chờ bên mình gọi, bạn xem trước khoá 28 bài video quay sẵn được luôn. Lần
+              sau đăng nhập bằng số điện thoại và mật khẩu vừa đặt.
+            </p>
+            <Link
+              href="/student/learn"
+              className={`${btn.primary} mt-3 inline-flex px-4 py-2.5 no-underline`}
+            >
+              Vào học ngay
+            </Link>
+          </div>
+        )}
+
+        {state.daCoTaiKhoan && (
+          <div className="mt-4 rounded-xl bg-white border border-navy-200 p-4">
+            <p className="font-semibold text-ink-900">Số này đã có tài khoản</p>
+            <p className="text-sm text-ink-600 mt-1">
+              Bạn đăng nhập để xem khoá 28 bài video quay sẵn nhé. Quên mật khẩu thì bấm
+              &quot;Quên mật khẩu&quot; ở trang đăng nhập.
+            </p>
+            <Link
+              href="/login"
+              className={`${btn.primary} mt-3 inline-flex px-4 py-2.5 no-underline`}
+            >
+              Đăng nhập
+            </Link>
+          </div>
+        )}
         <p className="text-sm text-ink-500 mt-3">
           Cần gấp thì gọi{" "}
           <a href={`tel:${BRAND.phone}`} className="font-semibold text-wood-600">
@@ -152,6 +188,28 @@ export default function HocThuForm({
         </div>
       </div>
 
+      {!daDangNhap && (
+        <div>
+          <label className={label} htmlFor="ht-password">
+            Đặt mật khẩu
+          </label>
+          <input
+            id="ht-password"
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            autoComplete="new-password"
+            className={field}
+            placeholder="Ít nhất 6 ký tự"
+          />
+          <p className="text-xs text-ink-400 mt-1.5">
+            Gửi xong là có luôn tài khoản để xem khoá 28 bài video quay sẵn, không cần điền lại
+            form nào nữa.
+          </p>
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className={label} htmlFor="ht-area">
@@ -202,7 +260,7 @@ export default function HocThuForm({
       )}
 
       <button type="submit" disabled={pending} className={`${btn.primary} w-full py-3 text-base`}>
-        {pending ? "Đang gửi..." : "Đăng ký học thử miễn phí"}
+        {pending ? "Đang gửi..." : daDangNhap ? "Đăng ký học thử miễn phí" : "Đăng ký học thử & tạo tài khoản"}
       </button>
 
       <p className="text-xs text-ink-500 text-center">

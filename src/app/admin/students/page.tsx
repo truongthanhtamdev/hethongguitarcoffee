@@ -1,4 +1,5 @@
 import { requireRole } from "@/lib/guard";
+import { emailHienThi } from "@/lib/format";
 import { listStudents } from "@/lib/queries";
 import { countDoneLessonsByUser } from "@/lib/learning";
 import { TOTAL_LESSONS } from "@/lib/curriculum";
@@ -83,7 +84,7 @@ export default async function StudentsPage() {
                       {s.name}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-ink-600">{s.email}</td>
+                  <td className="px-4 py-3 text-ink-600">{emailHienThi(s.email) ?? "–"}</td>
                   <td className="px-4 py-3 text-ink-600 tabular">{s.phone || "–"}</td>
                   <td className="px-4 py-3 text-ink-600">{s.branch || "–"}</td>
                   <td className="px-4 py-3 text-ink-600 whitespace-nowrap">{s.area || "–"}</td>

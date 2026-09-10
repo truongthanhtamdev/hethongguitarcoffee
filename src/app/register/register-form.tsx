@@ -35,22 +35,6 @@ export default function RegisterForm() {
       </div>
 
       <div>
-        <label className={label} htmlFor="reg-email">
-          Email
-        </label>
-        <input
-          id="reg-email"
-          name="email"
-          type="email"
-          required
-          autoComplete="email"
-          defaultValue={v?.email ?? ""}
-          className={field}
-          placeholder="ban@email.com"
-        />
-      </div>
-
-      <div>
         <label className={label} htmlFor="reg-phone">
           Số điện thoại
         </label>
@@ -64,6 +48,24 @@ export default function RegisterForm() {
           className={field}
           placeholder="09xx xxx xxx"
         />
+      </div>
+
+      <div>
+        <label className={label} htmlFor="reg-email">
+          Email <span className="font-normal text-ink-400">(không bắt buộc)</span>
+        </label>
+        <input
+          id="reg-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          defaultValue={v?.email ?? ""}
+          className={field}
+          placeholder="ban@email.com"
+        />
+        <p className="text-xs text-ink-400 mt-1.5">
+          Bỏ trống cũng được — đăng nhập bằng số điện thoại ở trên.
+        </p>
       </div>
 
       <div>
@@ -160,8 +162,8 @@ export default function RegisterForm() {
       </button>
 
       <p className="text-xs text-ink-500 text-center leading-relaxed">
-        Tạo xong là vào học 28 bài video ngay. Bên mình sẽ gọi lại để xếp lịch buổi học tại quán
-        nếu bạn muốn.
+        Đăng nhập bằng số điện thoại và mật khẩu vừa đặt. Tạo xong là vào học 28 bài video
+        ngay.
       </p>
     </form>
   );

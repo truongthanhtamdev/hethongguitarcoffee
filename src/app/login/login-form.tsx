@@ -16,7 +16,7 @@ export default function LoginForm({ next }: { next: string }) {
       <input type="hidden" name="next" value={next} />
       <div>
         <label className={label} htmlFor="login-email">
-          Email hoặc số điện thoại
+          Số điện thoại hoặc email
         </label>
         <input
           id="login-email"
@@ -26,7 +26,7 @@ export default function LoginForm({ next }: { next: string }) {
           autoFocus
           autoComplete="username"
           className={field}
-          placeholder="ban@email.com"
+          placeholder="09xx xxx xxx"
         />
       </div>
       <div>

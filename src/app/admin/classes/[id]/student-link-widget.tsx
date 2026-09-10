@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { linkStudentAccountAction } from "@/actions/classes";
+import { emailHienThi } from "@/lib/format";
 import type { UserRow } from "@/lib/types";
 
 export default function StudentLinkWidget({
@@ -34,7 +35,7 @@ export default function StudentLinkWidget({
         <option value="">Chưa gắn tài khoản</option>
         {students.map((s) => (
           <option key={s.id} value={s.id}>
-            {s.name} ({s.email})
+            {s.name} ({emailHienThi(s.email) ?? s.phone ?? "chưa có liên hệ"})
           </option>
         ))}
       </select>

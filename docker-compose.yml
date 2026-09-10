@@ -5,9 +5,9 @@
 # truy cập micro trên https hoặc localhost.
 #
 # Trước khi chạy, tạo file .env cạnh file này với 2 dòng:
-#   DOMAIN=hocguitar.tenmien.com
+#   DOMAIN=dayguitartaiquancafe.com
 #   AUTH_SECRET=<chuỗi ngẫu nhiên dài, sinh bằng: openssl rand -base64 48>
-#   ADMIN_EMAIL=admin@tenmien.com
+#   ADMIN_EMAIL=admin@dayguitartaiquancafe.com
 #   ADMIN_PASSWORD=<mật khẩu quản trị bạn tự đặt>
 
 services:

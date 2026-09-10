@@ -75,6 +75,7 @@ export default async function StudentHocThuPage() {
           tenSan={me.name}
           sdtSan={me.phone ?? ""}
           khuVucSan={me.area ?? ""}
+          daDangNhap
         />
       </Card>
     </div>
