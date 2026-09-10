@@ -43,22 +43,77 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
           ← Tất cả khoá học
         </Link>
 
-        <div className="grid lg:grid-cols-[1fr_20rem] gap-8 mt-4 items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-ink-900 tracking-tight leading-tight">
+        {/* Điện thoại xếp một cột: tên khoá, giá và nút mua lên trước, phần
+            giới thiệu để sau — để giá nằm cuối trang là khách phải lướt qua
+            hết mới biết bao nhiêu tiền. */}
+        <div className="flex flex-col gap-6 mt-4 lg:grid lg:grid-cols-[1fr_20rem] lg:gap-8 lg:items-start">
+          <div className="lg:col-start-1 lg:row-start-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-ink-900 tracking-tight leading-tight">
               {c.name}
             </h1>
             <p className="text-ink-600 mt-3">{c.tagline}</p>
+          </div>
+
+          <aside className="space-y-3 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-20">
+            <div className="rounded-2xl border border-navy-100 bg-white p-5">
+              <p className="text-3xl font-bold text-wood-600 tabular">{tienVN(c.price)}</p>
+              {c.price_old > 0 && (
+                <p className="text-sm text-ink-400 line-through tabular">{tienVN(c.price_old)}</p>
+              )}
+              <p className="text-sm text-ink-500 mt-1">
+                Đóng một lần, học không giới hạn. {bai.length} bài video.
+              </p>
+              <p className="text-sm text-ink-500 mt-3">
+                Giáo viên đứng khoá: <b className="text-ink-900">{c.teacher_name}</b>
+              </p>
+            </div>
+
+            {daMua ? (
+              <div className="rounded-2xl border border-mint-300 bg-mint-50 p-5">
+                <p className="font-bold text-mint-700">Bạn đã có khoá này</p>
+                <Link
+                  href="/student/khoa-hoc"
+                  className="inline-block mt-2 font-semibold text-wood-600"
+                >
+                  Vào học ngay →
+                </Link>
+              </div>
+            ) : donCho ? (
+              <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5">
+                <p className="font-bold text-amber-700">Đơn của bạn đang chờ</p>
+                <p className="text-sm text-ink-700 mt-1.5">
+                  Bên mình sẽ gọi số {donCho.customer_phone} để thu tiền và mở khoá. Cần gấp thì gọi{" "}
+                  <a href={`tel:${BRAND.phone}`} className="font-semibold text-wood-600">
+                    {prettyPhone()}
+                  </a>
+                  .
+                </p>
+              </div>
+            ) : laHocVien ? (
+              <MuaBangVi
+                slug={c.slug}
+                gia={c.price}
+                soDu={viDu}
+                giaHienThi={tienVN(c.price)}
+                soDuHienThi={tienVN(viDu)}
+              />
+            ) : (
+              <CourseOrderForm slug={c.slug} name={c.name} price={tienVN(c.price)} />
+            )}
+          </aside>
+
+
+          <div className="lg:col-start-1 lg:row-start-2">
 
             {xemThu && (
-              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-6">
+              <div className="rounded-2xl border border-navy-100 bg-white p-5">
                 <p className="font-bold text-ink-900 mb-3">Xem thử: {xemThu.title}</p>
                 <VideoPlayer url={xemThu.video ?? ""} title={xemThu.title} />
               </div>
             )}
 
             {ketQua.length > 0 && (
-              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4">
+              <div className="rounded-2xl border border-navy-100 bg-white p-5 mt-4 first:mt-0">
                 <p className="font-bold text-ink-900">Học xong bạn làm được gì</p>
                 <ul className="mt-3 space-y-2">
                   {ketQua.map((k) => (
@@ -123,54 +178,6 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
               </div>
             )}
           </div>
-
-          <aside className="lg:sticky lg:top-20 space-y-3">
-            <div className="rounded-2xl border border-navy-100 bg-white p-5">
-              <p className="text-3xl font-bold text-wood-600 tabular">{tienVN(c.price)}</p>
-              {c.price_old > 0 && (
-                <p className="text-sm text-ink-400 line-through tabular">{tienVN(c.price_old)}</p>
-              )}
-              <p className="text-sm text-ink-500 mt-1">
-                Đóng một lần, học không giới hạn. {bai.length} bài video.
-              </p>
-              <p className="text-sm text-ink-500 mt-3">
-                Giáo viên đứng khoá: <b className="text-ink-900">{c.teacher_name}</b>
-              </p>
-            </div>
-
-            {daMua ? (
-              <div className="rounded-2xl border border-mint-300 bg-mint-50 p-5">
-                <p className="font-bold text-mint-700">Bạn đã có khoá này</p>
-                <Link
-                  href="/student/khoa-hoc"
-                  className="inline-block mt-2 font-semibold text-wood-600"
-                >
-                  Vào học ngay →
-                </Link>
-              </div>
-            ) : donCho ? (
-              <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5">
-                <p className="font-bold text-amber-700">Đơn của bạn đang chờ</p>
-                <p className="text-sm text-ink-700 mt-1.5">
-                  Bên mình sẽ gọi số {donCho.customer_phone} để thu tiền và mở khoá. Cần gấp thì gọi{" "}
-                  <a href={`tel:${BRAND.phone}`} className="font-semibold text-wood-600">
-                    {prettyPhone()}
-                  </a>
-                  .
-                </p>
-              </div>
-            ) : laHocVien ? (
-              <MuaBangVi
-                slug={c.slug}
-                gia={c.price}
-                soDu={viDu}
-                giaHienThi={tienVN(c.price)}
-                soDuHienThi={tienVN(viDu)}
-              />
-            ) : (
-              <CourseOrderForm slug={c.slug} name={c.name} price={tienVN(c.price)} />
-            )}
-          </aside>
         </div>
       </main>
 

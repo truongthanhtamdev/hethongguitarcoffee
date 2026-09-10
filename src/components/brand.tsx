@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { IconMenu } from "./icons";
 
 export const BRAND = {
   name: "Dạy Guitar Tại Quán Cà Phê",
@@ -71,51 +72,87 @@ export function BrandMark({ className = "h-9" }: { className?: string }) {
   return <img src="/logo-quancafe.png" alt="" className={`${className} rounded-xl`} />;
 }
 
-/** Thanh đầu trang cho các trang công khai (khách chưa đăng nhập). */
+/** Các mục trên thanh đầu trang, dùng lại cho cả bản gọn trên điện thoại. */
+const MUC_MENU = [
+  { href: "/lop-hoc", chu: "Lớp học" },
+  { href: "/khoa-hoc", chu: "Khoá học" },
+  { href: "/shop", chu: "Mua đàn" },
+  { href: "/login", chu: "Đăng nhập" },
+];
+
+/**
+ * Thanh đầu trang cho các trang công khai (khách chưa đăng nhập).
+ *
+ * Trên điện thoại chỉ để lại logo và nút "Học thử" — bốn mục còn lại nằm trong
+ * menu thu gọn. Nhét cả năm mục lên một hàng thì thanh rộng 443px trong khi
+ * điện thoại phổ biến chỉ 360px, cả trang bị đẩy lệch và kéo ngang được.
+ *
+ * Menu dùng thẻ <details> nên mở ra được mà không cần JavaScript — trang công
+ * khai nào cũng chạy, kể cả lúc mạng yếu chưa tải xong script.
+ */
 export function PublicHeader() {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-navy-100">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center gap-3">
         <Link href="/" className="flex items-center gap-2.5 no-underline min-w-0">
           <BrandMark className="h-9 shrink-0" />
-          {/* Trên điện thoại chỉ còn logo: có 4 mục bên phải, để cả tên nữa
-              là chữ bị cắt cụt thành "Gu..." và nút kêu gọi vỡ làm ba dòng. */}
-          <span className="font-bold text-ink-900 truncate hidden sm:block">{BRAND.short}</span>
+          <span className="font-bold text-ink-900 truncate">{BRAND.short}</span>
         </Link>
 
-        <nav className="ml-auto flex items-center gap-0.5 sm:gap-2">
-          <Link
-            href="/lop-hoc"
-            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
-          >
-            Lớp học
-          </Link>
-          <Link
-            href="/khoa-hoc"
-            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
-          >
-            Khoá học
-          </Link>
-          <Link
-            href="/shop"
-            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
-          >
-            Mua đàn
-          </Link>
-          <Link
-            href="/login"
-            className="px-2.5 sm:px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
-          >
-            Đăng nhập
-          </Link>
+        {/* Bản đầy đủ, từ màn hình vừa trở lên */}
+        <nav className="ml-auto hidden md:flex items-center gap-1">
+          {MUC_MENU.map((m) => (
+            <Link
+              key={m.href}
+              href={m.href}
+              className="px-3 py-2 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline whitespace-nowrap"
+            >
+              {m.chu}
+            </Link>
+          ))}
           <Link
             href="/hoc-thu"
-            className="px-3 sm:px-3.5 py-2 rounded-xl text-sm font-semibold bg-wood-500 hover:bg-wood-600 text-white no-underline whitespace-nowrap"
+            className="px-3.5 py-2 rounded-xl text-sm font-semibold bg-wood-500 hover:bg-wood-600 text-white no-underline whitespace-nowrap"
           >
-            <span className="sm:hidden">Học thử</span>
-            <span className="hidden sm:inline">Học thử miễn phí</span>
+            Học thử miễn phí
           </Link>
         </nav>
+
+        {/* Bản gọn cho điện thoại */}
+        <div className="ml-auto flex md:hidden items-center gap-1.5">
+          <Link
+            href="/hoc-thu"
+            className="px-3 py-2 rounded-xl text-sm font-semibold bg-wood-500 hover:bg-wood-600 text-white no-underline whitespace-nowrap"
+          >
+            Học thử
+          </Link>
+
+          <details className="relative [&[open]>summary>svg]:rotate-90">
+            <summary
+              className="list-none cursor-pointer rounded-xl p-2 text-ink-700 hover:bg-ivory-100 marker:hidden"
+              aria-label="Mở menu"
+            >
+              <IconMenu className="w-6 h-6 transition-transform" />
+            </summary>
+            <nav className="absolute right-0 top-full mt-2 w-52 rounded-2xl border border-navy-100 bg-white shadow-lg p-1.5">
+              {MUC_MENU.map((m) => (
+                <Link
+                  key={m.href}
+                  href={m.href}
+                  className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-ink-700 hover:bg-ivory-100 no-underline"
+                >
+                  {m.chu}
+                </Link>
+              ))}
+              <Link
+                href="/register"
+                className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-wood-600 hover:bg-ivory-100 no-underline"
+              >
+                Đăng ký tài khoản
+              </Link>
+            </nav>
+          </details>
+        </div>
       </div>
     </header>
   );

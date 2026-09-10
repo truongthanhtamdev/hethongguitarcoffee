@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { placeOrderAction, type OrderState } from "@/actions/orders";
 import { BRAND, prettyPhone } from "@/components/brand";
+import { field, label } from "@/components/ui";
 
 const initialState: OrderState = {};
 
@@ -47,7 +48,7 @@ export default function OrderForm({
       <input type="hidden" name="slug" value={slug} />
 
       <div>
-        <label className="block text-sm font-medium text-ink-700 mb-1.5" htmlFor="o-name">
+        <label className={label} htmlFor="o-name">
           Họ và tên
         </label>
         <input
@@ -55,13 +56,13 @@ export default function OrderForm({
           defaultValue={v?.name ?? ""}
           name="name"
           required
-          className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-wood-400 focus:ring-2 focus:ring-wood-500/20 focus:outline-none"
+          className={field}
           placeholder="Nguyễn Văn A"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink-700 mb-1.5" htmlFor="o-phone">
+        <label className={label} htmlFor="o-phone">
           Số điện thoại
         </label>
         <input
@@ -70,26 +71,26 @@ export default function OrderForm({
           name="phone"
           type="tel"
           required
-          className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-wood-400 focus:ring-2 focus:ring-wood-500/20 focus:outline-none"
+          className={field}
           placeholder="09xx xxx xxx"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink-700 mb-1.5" htmlFor="o-address">
+        <label className={label} htmlFor="o-address">
           Địa chỉ giao <span className="font-normal text-ink-400">(để trống nếu ghé quán lấy)</span>
         </label>
         <input
           id="o-address"
           defaultValue={v?.address ?? ""}
           name="address"
-          className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-wood-400 focus:ring-2 focus:ring-wood-500/20 focus:outline-none"
+          className={field}
           placeholder="Số nhà, đường, quận"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-ink-700 mb-1.5" htmlFor="o-note">
+        <label className={label} htmlFor="o-note">
           Ghi chú <span className="font-normal text-ink-400">(không bắt buộc)</span>
         </label>
         <textarea
@@ -97,7 +98,7 @@ export default function OrderForm({
           defaultValue={v?.note ?? ""}
           name="note"
           rows={2}
-          className="w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm focus:border-wood-400 focus:ring-2 focus:ring-wood-500/20 focus:outline-none"
+          className={field}
           placeholder="Ví dụ: mình mới tập, cần đàn dễ bấm"
         />
       </div>

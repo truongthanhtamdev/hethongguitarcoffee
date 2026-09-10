@@ -130,9 +130,13 @@ export function MetricCard({
       )}
       <div className="min-w-0">
         <p className="text-sm text-ink-500 leading-snug">{label}</p>
-        <p className={`text-3xl font-bold mt-0.5 tabular ${t.value}`}>
+        {/* Máy hẹp (320px) thì "12 tiết" bị đẩy tràn ra khỏi thẻ, nên cho phép
+            đơn vị rớt xuống dòng dưới thay vì dính cứng sau con số. */}
+        <p className={`text-3xl font-bold mt-0.5 tabular leading-tight ${t.value}`}>
           {value}
-          {unit && <span className="text-sm font-medium text-ink-400 ml-1.5">{unit}</span>}
+          {unit && (
+            <span className="text-sm font-medium text-ink-400 ml-1.5 inline-block">{unit}</span>
+          )}
         </p>
         {hint && <p className="text-xs text-ink-400 mt-0.5">{hint}</p>}
       </div>
@@ -306,8 +310,13 @@ export const btn = {
   navy: "inline-flex items-center justify-center gap-2 bg-navy-800 hover:bg-navy-700 disabled:opacity-60 text-white font-semibold rounded-xl px-4 py-2.5 text-sm transition",
 };
 
+/**
+ * Ô nhập. Cỡ chữ 16px trên điện thoại rồi mới nhỏ lại ở màn hình lớn: Safari
+ * trên iPhone tự phóng to cả trang khi chạm vào ô có chữ dưới 16px, phóng
+ * xong không tự thu lại, khách phải tự vuốt thu — rất khó chịu lúc điền form.
+ */
 export const field =
-  "w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 focus:border-wood-400 focus:ring-2 focus:ring-wood-500/20 focus:outline-none transition";
+  "w-full rounded-xl border border-navy-200 bg-white px-3.5 py-2.5 text-base sm:text-sm text-ink-900 placeholder:text-ink-400 focus:border-wood-400 focus:ring-2 focus:ring-wood-500/20 focus:outline-none transition";
 
 export const label = "block text-sm font-medium text-ink-700 mb-1.5";
 
